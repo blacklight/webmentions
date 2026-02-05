@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 
@@ -98,6 +98,7 @@ class Webmention:
     status: WebmentionStatus = WebmentionStatus.PENDING
     mention_type: WebmentionType = WebmentionType.UNKNOWN
     mention_type_raw: str | None = None
+    metadata: dict = field(default_factory=dict)
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

@@ -1,0 +1,48 @@
+[project]
+name = "webmentions"
+version = "0.0.0"
+description = "A general-purpose library to add Webmentions support to your website"
+dependencies = [
+	"requests",
+    "beautifulsoup4",
+    "mf2py",
+]
+authors = [
+  {name = "Fabio Manganiello", email = "fabio@manganiello.tech"},
+]
+
+classifiers=[
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: AGPL License",
+    "Development Status :: 3 - Alpha",
+]
+
+readme = "README.md"
+requires-python = '>= 3.8'
+keywords = ["webmentions", "microformats", "indieweb", "federation"]
+
+[project.urls]
+homepage = "https://git.platypush.tech/blacklight/webmentions"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src/python"}
+
+[tool.setuptools.packages.find]
+where = ["src/python"]
+include = ["webmentions*"]
+
+[tool.bumpversion]
+current_version = "0.0.0"
+commit = true
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "src/python/webmentions/__init__.py"
+
+[[tool.bumpversion.files]]
+filename = "CHANGELOG.md"
+search = "Unreleased"

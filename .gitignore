@@ -3,3 +3,7 @@ __pycache__
 *.egg-info
 *.lock
 /dist
+.idea
+.pytest_cache
+.benchmarks
+.venv

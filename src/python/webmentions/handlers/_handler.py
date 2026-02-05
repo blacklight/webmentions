@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 class WebmentionsHandler:
     """
     Webmentions handler.
+
+    :param storage: The Webmentions storage backend
+    :param base_url: The base URL of the server, used to validate target URLs
+    :param http_timeout: The HTTP timeout for fetching source URLs
+    :param user_agent: The User-Agent header to use when fetching source URLs
+    :param exclude_netlocs: A set of netlocs to exclude when processing outgoing Webmentions
     """
 
     def __init__(

@@ -1,5 +1,7 @@
 ![Webmentions](https://s3.fabiomanganiello.com/fabio/img/webmentions.png)
 
+[![build](https://github.com/blacklight/webmentions/actions/workflows/build.yml/badge.svg)](https://github.com/blacklight/webmentions/actions/workflows/build.yml)
+
 A general-purpose library to add Webmentions support to your website.
 
 This library implements support for

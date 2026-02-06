@@ -1,6 +1,5 @@
 from dataclasses import asdict
 from datetime import datetime, timezone
-from typing import Self
 
 import sqlalchemy as sa
 
@@ -60,7 +59,7 @@ class DbWebmention:
         return {c.name for c in cls.__table__.columns}  # type: ignore
 
     @classmethod
-    def from_webmention(cls, webmention: Webmention) -> Self:
+    def from_webmention(cls, webmention: Webmention) -> "DbWebmention":
         created_at = webmention.created_at
         if created_at is None:
             created_at = webmention.published

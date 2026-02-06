@@ -1,4 +1,4 @@
-# Webmentions
+![Webmentions](https://s3.fabiomanganiello.com/fabio/img/webmentions.png)
 
 A general-purpose library to add Webmentions support to your website.
 

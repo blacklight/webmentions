@@ -2,7 +2,7 @@ from flask import Flask
 
 from webmentions import WebmentionsHandler
 from webmentions.storage.adapters.db import init_db_storage
-from webmentions.server.adapters.flask import bind_webmentions_endpoint
+from webmentions.server.adapters.flask import bind_webmentions
 
 app = Flask(__name__)
 
@@ -17,5 +17,5 @@ def run_server(engine: str, address: str, port: int):
         base_url=f"http://{address}:{port}",
     )
 
-    bind_webmentions_endpoint(app, handler)
+    bind_webmentions(app, handler)
     app.run(host=address, port=port)

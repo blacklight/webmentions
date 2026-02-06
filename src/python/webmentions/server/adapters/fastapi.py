@@ -14,7 +14,8 @@ from ...handlers import WebmentionsHandler
 from ..._exceptions import WebmentionException
 from ._common import append_link_header, webmention_link_header_value
 
-def bind_webmentions_endpoint(
+
+def bind_webmentions(
     app: FastAPI, handler: "WebmentionsHandler", route: str = "/webmention"
 ):
     """
@@ -37,9 +38,9 @@ def bind_webmentions_endpoint(
         async def _webmentions_link_header_middleware(request, call_next):
             response = await call_next(request)
             content_type = response.headers.get("content-type")
-            if content_type is not None and content_type.split(";", 1)[0].strip().startswith(
-                "text/"
-            ):
+            if content_type is not None and content_type.split(";", 1)[
+                0
+            ].strip().startswith("text/"):
                 existing = response.headers.get("link")
                 for endpoint in getattr(app.state, "_webmentions_endpoints", set()):
                     existing = append_link_header(
@@ -48,6 +49,8 @@ def bind_webmentions_endpoint(
                 if existing is not None:
                     response.headers["link"] = existing
             return response
+
+        return _webmentions_link_header_middleware
 
     @app.post(route)
     def webmention(

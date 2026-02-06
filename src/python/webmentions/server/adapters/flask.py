@@ -24,16 +24,16 @@ def _join_url_prefix(url_prefix: str | None, route: str) -> str:
     return f"{prefix}{path}"
 
 
-def _install_webmentions_link_header_after_request(app: Flask) -> None:
+def _install_webmentions_link_header_after_request(app: Flask):
     if not app.extensions.get("webmentions_link_header_after_request_installed", False):
         app.extensions["webmentions_link_header_after_request_installed"] = True
 
         @app.after_request
         def _webmentions_link_header_after_request(response):
             content_type = response.headers.get("Content-Type")
-            if content_type is not None and content_type.split(";", 1)[0].strip().startswith(
-                "text/"
-            ):
+            if content_type is not None and content_type.split(";", 1)[
+                0
+            ].strip().startswith("text/"):
                 existing = response.headers.get("Link")
                 for endpoint in app.extensions.get("webmentions_endpoints", set()):
                     existing = append_link_header(
@@ -42,6 +42,8 @@ def _install_webmentions_link_header_after_request(app: Flask) -> None:
                 if existing is not None:
                     response.headers["Link"] = existing
             return response
+
+        return _webmentions_link_header_after_request
 
 
 def webmention_route(handler: WebmentionsHandler):
@@ -56,7 +58,7 @@ def webmention_route(handler: WebmentionsHandler):
     return jsonify({"status": "ok"})
 
 
-def bind_webmentions_endpoint(
+def bind_webmentions(
     app: Flask, handler: "WebmentionsHandler", route: str = "/webmention"
 ):
     """

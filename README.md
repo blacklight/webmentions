@@ -55,7 +55,7 @@ pip install "webmentions[db,fastapi]"
 from fastapi import FastAPI
 from webmentions import WebmentionsHandler
 from webmentions.storage.adapters.db import init_db_storage
-from webmentions.server.adapters.fastapi import bind_webmentions_endpoint
+from webmentions.server.adapters.fastapi import bind_webmentions
 
 app = FastAPI()
 
@@ -73,7 +73,7 @@ handler = WebmentionsHandler(
 # ...Initialize your Web app here...
 
 # Bind a POST /webmention to your FastAPI app
-bind_webmentions_endpoint(app, handler)
+bind_webmentions(app, handler)
 ```
 
 ### SQLAlchemy + Flask
@@ -86,7 +86,7 @@ pip install "webmentions[db,flask]"
 from flask import Flask
 from webmentions import WebmentionsHandler
 from webmentions.storage.adapters.db import init_db_storage
-from webmentions.server.adapters.flask import bind_webmentions_endpoint
+from webmentions.server.adapters.flask import bind_webmentions
 
 app = Flask(__name__)
 
@@ -104,7 +104,7 @@ handler = WebmentionsHandler(
 # ...Initialize your Web app here...
 
 # Bind a POST /webmention to your Flask app
-bind_webmentions_endpoint(app, handler)
+bind_webmentions(app, handler)
 ```
 
 ## Tests

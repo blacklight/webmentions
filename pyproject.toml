@@ -2,6 +2,7 @@
 name = "webmentions"
 version = "0.1.1"
 description = "A general-purpose library to add Webmentions support to your website"
+license = "AGPL-3.0-or-later"
 dependencies = [
 	"requests",
     "beautifulsoup4",
@@ -13,7 +14,6 @@ authors = [
 
 classifiers=[
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "License :: OSI Approved :: AGPL License",
     "Development Status :: 3 - Alpha",
 ]
 

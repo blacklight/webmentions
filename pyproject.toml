@@ -24,6 +24,7 @@ keywords = ["webmentions", "microformats", "indieweb", "federation"]
 [project.optional-dependencies]
 db = ["sqlalchemy"]
 fastapi = ["fastapi", "uvicorn", "python-multipart"]
+flask = ["flask"]
 test = ["pytest", "sqlalchemy"]
 
 [project.urls]

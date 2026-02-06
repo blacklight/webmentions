@@ -27,136 +27,87 @@ The underlying mechanism of Webmentions is relatively simple:
 
 ## Installation
 
+For the base installation:
+
 ```bash
 pip install webmentions
 ```
 
 ## Usage
 
-This library provides the bindings to send and process Webmentions, but it's
-agnostic about how the Webmentions are stored and rendered, and agnostic about
-the Web framework used by your application.
+This library provides the bindings to send and process Webmentions. It is
+agnostic about how the Webmentions are stored and rendered, but it provides
+a few helpers for common frameworks.
 
-At the very least, you will have to:
+Some examples are provided under the
+[examples](https://git.platypush.tech/blacklight/webmentions/src/branch/main/src/python/examples)
+directory.
 
-- Extend `WebmentionsStorage` to store Webmentions on your database or
-  filesystem.
+### SQLAlchemy + FastAPI
 
-- Create a `WebmentionsHandler` instances wired to that storage.
-
-- Expose an HTTP endpoint that accepts Webmentions and forwards them to the
-  handler.
-
-- Render stored Webmentions as HTML.
-
-### Minimal SQLAlchemy + FastAPI example
-
-```python
-# storage.py
-
-from dataclasses import asdict
-from datetime import datetime, timezone
-
-import sqlalchemy as sa
-from sqlalchemy.orm import declarative_base
-from webmentions import Webmention, WebmentionDirection, WebmentionsStorage
-
-Base = declarative_base()
-
-
-class DbWebmention(Base):
-  __tablename__ = 'webmentions'
-
-  id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-  source = sa.Column(sa.String, nullable=False)
-  target = sa.Column(sa.String, nullable=False)
-  direction = sa.Column(
-    sa.Enum('incoming', 'outgoing', name='direction')
-  )
-  title = sa.Column(sa.String)
-  excerpt = sa.Column(sa.String)
-  content = sa.Column(sa.String)
-  author_name = sa.Column(sa.String)
-  author_url = sa.Column(sa.String)
-  author_photo = sa.Column(sa.String)
-  published = sa.Column(sa.DateTime, nullable=False)
-  mention_type = sa.Column(sa.String)
-  created_at = sa.Column(sa.DateTime, nullable=False)
-  updated_at = sa.Column(sa.DateTime, nullable=False)
-
-  @classmethod
-  def from_webmention(cls, webmention: Webmention):
-    return cls(
-      **{
-        **asdict(webmention),
-        'direction': webmention.direction.name.value,
-        'mention_type': webmention.mention_type.name.value,
-        'created_at': webmention.created_at or webmention.published or datetime.now(timezone.utc),
-        'updated_at': datetime.now(timezone.utc),
-      }
-    )
-
-
-class DbWebmentionsStorage(WebmentionsStorage):
-  """
-  Implements a simple database storage for Webmentions.
-  """
-
-  def __init__(self, engine: str):
-    self.engine = sa.create_engine(engine)
-
-  def store_webmention(self, webmention: Webmention):
-    with self.engine.begin() as conn:
-      conn.execute(
-        sa.insert(DbWebmention).values(
-          DbWebmention.from_webmention(webmention)
-        )
-      )
-
-  def delete_webmention(
-    self,
-    source: str,
-    target: str,
-    direction: WebmentionDirection,
-  ):
-    with self.engine.begin() as conn:
-      conn.execute(
-        sa.delete(DbWebmention).where(
-          sa.and_(
-            DbWebmention.source == source,
-            DbWebmention.target == target,
-            DbWebmention.direction == direction.value
-          )
-        )
-      )
-
-  def retrieve_webmentions(
-    self,
-    resource: str,
-    direction: WebmentionDirection,
-  ):
-    with self.engine.begin() as conn:
-      return conn.execute(
-        sa.select(DbWebmention).where(
-          sa.and_(
-            DbWebmention.target == resource,
-            DbWebmention.direction == direction.value
-          )
-        )
-      )
+```bash
+pip install "webmentions[db,fastapi]"
 ```
 
 ```python
-# app.py
-
+from fastapi import FastAPI
 from webmentions import WebmentionsHandler
+from webmentions.storage.adapters.db import init_db_storage
+from webmentions.server.adapters.fastapi import bind_webmentions_endpoint
 
+app = FastAPI()
 
-class MyApp:
-  def __init__(self):
-    self.webmentions_handler = WebmentionsHandler(
-        storage=DbWebmentionsStorage('sqlite:///webmentions.db'),
-        base_url="https://example.com",
-    )
+# Replace this with your own database URL, or an existing engine.
+# Extra arguments passed to init_db_storage will be passed to create_engine
+storage = init_db_storage(engine="sqlite:////tmp/webmentions.db")
+
+# Your Webmentions handler
+handler = WebmentionsHandler(
+    storage=storage,
+    # This should match the public base URL of your site
+    base_url=f"https://example.com",
+)
+
+# ...Initialize your Web app here...
+
+# Bind a POST /webmention to your FastAPI app
+bind_webmentions_endpoint(app, handler)
 ```
 
+### SQLAlchemy + Flask
+
+```bash
+pip install "webmentions[db,flask]"
+```
+
+```python
+from flask import Flask
+from webmentions import WebmentionsHandler
+from webmentions.storage.adapters.db import init_db_storage
+from webmentions.server.adapters.flask import bind_webmentions_endpoint
+
+app = Flask(__name__)
+
+# Replace this with your own database URL, or an existing engine.
+# Extra arguments passed to init_db_storage will be passed to create_engine
+storage = init_db_storage(engine="sqlite:////tmp/webmentions.db")
+
+# Your Webmentions handler
+handler = WebmentionsHandler(
+    storage=storage,
+    # This should match the public base URL of your site
+    base_url=f"https://example.com",
+)
+
+# ...Initialize your Web app here...
+
+# Bind a POST /webmention to your Flask app
+bind_webmentions_endpoint(app, handler)
+```
+
+## Tests
+
+```bash
+pip install -e ".[tests]"
+pytest tests
+```

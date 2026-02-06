@@ -21,6 +21,9 @@ readme = "README.md"
 requires-python = '>= 3.8'
 keywords = ["webmentions", "microformats", "indieweb", "federation"]
 
+[project.optional-dependencies]
+db = ["sqlalchemy"]
+
 [project.urls]
 homepage = "https://git.platypush.tech/blacklight/webmentions"
 

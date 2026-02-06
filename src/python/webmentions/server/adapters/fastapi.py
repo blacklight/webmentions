@@ -12,7 +12,7 @@ HTTPException = fastapi_upstream.HTTPException
 
 from ...handlers import WebmentionsHandler
 from ..._exceptions import WebmentionException
-
+from ._common import append_link_header, webmention_link_header_value
 
 def bind_webmentions_endpoint(
     app: FastAPI, handler: "WebmentionsHandler", route: str = "/webmention"
@@ -24,6 +24,30 @@ def bind_webmentions_endpoint(
     :param handler: The WebmentionsHandler to use for processing incoming Webmentions.
     :param route: The route to bind the endpoint to.
     """
+
+    if not hasattr(app.state, "_webmentions_endpoints"):
+        app.state._webmentions_endpoints = set()
+
+    app.state._webmentions_endpoints.add(route)
+
+    if not getattr(app.state, "_webmentions_link_header_middleware_installed", False):
+        app.state._webmentions_link_header_middleware_installed = True
+
+        @app.middleware("http")
+        async def _webmentions_link_header_middleware(request, call_next):
+            response = await call_next(request)
+            content_type = response.headers.get("content-type")
+            if content_type is not None and content_type.split(";", 1)[0].strip().startswith(
+                "text/"
+            ):
+                existing = response.headers.get("link")
+                for endpoint in getattr(app.state, "_webmentions_endpoints", set()):
+                    existing = append_link_header(
+                        existing, webmention_link_header_value(endpoint)
+                    )
+                if existing is not None:
+                    response.headers["link"] = existing
+            return response
 
     @app.post(route)
     def webmention(

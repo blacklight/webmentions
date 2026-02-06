@@ -13,6 +13,35 @@ request = flask_upstream.request
 
 from ...handlers import WebmentionsHandler
 from ..._exceptions import WebmentionException
+from ._common import append_link_header, webmention_link_header_value
+
+
+def _join_url_prefix(url_prefix: str | None, route: str) -> str:
+    prefix = (url_prefix or "").rstrip("/")
+    path = route if route.startswith("/") else f"/{route}"
+    if not prefix:
+        return path
+    return f"{prefix}{path}"
+
+
+def _install_webmentions_link_header_after_request(app: Flask) -> None:
+    if not app.extensions.get("webmentions_link_header_after_request_installed", False):
+        app.extensions["webmentions_link_header_after_request_installed"] = True
+
+        @app.after_request
+        def _webmentions_link_header_after_request(response):
+            content_type = response.headers.get("Content-Type")
+            if content_type is not None and content_type.split(";", 1)[0].strip().startswith(
+                "text/"
+            ):
+                existing = response.headers.get("Link")
+                for endpoint in app.extensions.get("webmentions_endpoints", set()):
+                    existing = append_link_header(
+                        existing, webmention_link_header_value(endpoint)
+                    )
+                if existing is not None:
+                    response.headers["Link"] = existing
+            return response
 
 
 def webmention_route(handler: WebmentionsHandler):
@@ -38,6 +67,9 @@ def bind_webmentions_endpoint(
     :param route: The route to bind the endpoint to.
     """
 
+    app.extensions.setdefault("webmentions_endpoints", set()).add(route)
+    _install_webmentions_link_header_after_request(app)
+
     def _route():
         return webmention_route(handler)
 
@@ -58,6 +90,13 @@ def bind_webmentions_blueprint(
     """
 
     bp = Blueprint("webmentions", __name__)
+
+    @bp.record_once
+    def _register(state):
+        app = state.app
+        effective_route = _join_url_prefix(state.url_prefix, route)
+        app.extensions.setdefault("webmentions_endpoints", set()).add(effective_route)
+        _install_webmentions_link_header_after_request(app)
 
     @bp.post(route)
     def _route():

@@ -45,6 +45,14 @@ Some examples are provided under the
 [examples](https://git.platypush.tech/blacklight/webmentions/src/branch/main/src/python/examples)
 directory.
 
+If you use a framework with officially supported bindings (FastAPI or Flask)
+then the `bind_webmentions` API is available to easily bind the Webmentions
+handler to your app, which provides:
+
+- A `POST /webmention` endpoint to receive Webmentions
+- A `Link` header to advertise the Webmention endpoint on all the `text/*`
+  responses
+
 ### SQLAlchemy + FastAPI
 
 ```bash

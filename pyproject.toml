@@ -23,6 +23,7 @@ keywords = ["webmentions", "microformats", "indieweb", "federation"]
 
 [project.optional-dependencies]
 db = ["sqlalchemy"]
+fastapi = ["fastapi", "uvicorn", "python-multipart"]
 test = ["pytest", "sqlalchemy"]
 
 [project.urls]

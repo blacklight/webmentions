@@ -23,6 +23,7 @@ keywords = ["webmentions", "microformats", "indieweb", "federation"]
 
 [project.optional-dependencies]
 db = ["sqlalchemy"]
+test = ["pytest", "sqlalchemy"]
 
 [project.urls]
 homepage = "https://git.platypush.tech/blacklight/webmentions"
@@ -49,3 +50,12 @@ filename = "src/python/webmentions/__init__.py"
 [[tool.bumpversion.files]]
 filename = "CHANGELOG.md"
 search = "Unreleased"
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks integration tests",
+]
+# Silence warning from a legacy usage of codecs.open in mf2py
+filterwarnings = [
+    "ignore:codecs\\.open\\(\\) is deprecated\\. Use open\\(\\) instead\\.:DeprecationWarning:mf2py\\.backcompat",
+]

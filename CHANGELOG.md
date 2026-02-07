@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- File-system monitoring storage adapter for serving static Web server files
+- `Link` header support in FastAPI and Flask server adapters
+
+### Fixed
+
+- Ensure timestamps are updated when a Webmention is marked as sent
+- Fix database retrieval by selecting the correct column dynamically
+
+### Testing
+
+- End-to-end tests covering Web server integration, file monitoring, and DB storage
+- Restore compatibility with Python <= 3.10 in the test suite
+
+### Documentation
+
+- README updates covering `bind_webmentions` and general documentation completion
+
 ## 0.1.1
 
 ### Added

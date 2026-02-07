@@ -45,6 +45,8 @@ def _install_webmentions_link_header_after_request(app: Flask):
 
         return _webmentions_link_header_after_request
 
+    return None
+
 
 def webmention_route(handler: WebmentionsHandler):
     source = request.form.get("source")

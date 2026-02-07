@@ -42,7 +42,7 @@ class WebmentionsStorage(ABC):
 
         :param resource: The URL of the resource associated to the Webmentions
         :param direction: The direction of the Webmentions (inbound or outbound)
-        :return: A list of webmention data dictionaries
+        :return: A list of Webmentions
         """
         return []
 
@@ -53,10 +53,13 @@ class WebmentionsStorage(ABC):
         :param source: The source URL of the Webmention
         :param target: The target URL of the Webmention
         """
+        now = datetime.now(timezone.utc)
         mention = Webmention(
             source=source,
             target=target,
             direction=WebmentionDirection.OUT,
         )
-        mention.updated_at = datetime.now(timezone.utc)
+        mention.published = mention.published or now
+        mention.created_at = mention.created_at or now
+        mention.updated_at = now
         self.store_webmention(mention)

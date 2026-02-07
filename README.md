@@ -45,6 +45,8 @@ Some examples are provided under the
 [examples](https://git.platypush.tech/blacklight/webmentions/src/branch/main/src/python/examples)
 directory.
 
+### Receiving Webmentions
+
 If you use a framework with officially supported bindings (FastAPI or Flask)
 then the `bind_webmentions` API is available to easily bind the Webmentions
 handler to your app, which provides:
@@ -53,7 +55,7 @@ handler to your app, which provides:
 - A `Link` header to advertise the Webmention endpoint on all the `text/*`
   responses
 
-### SQLAlchemy + FastAPI
+#### SQLAlchemy + FastAPI
 
 ```bash
 pip install "webmentions[db,fastapi]"
@@ -75,16 +77,16 @@ storage = init_db_storage(engine="sqlite:////tmp/webmentions.db")
 handler = WebmentionsHandler(
     storage=storage,
     # This should match the public base URL of your site
-    base_url=f"https://example.com",
+    base_url="https://example.com",
 )
 
 # ...Initialize your Web app here...
 
-# Bind a POST /webmention to your FastAPI app
+# Bind Webmentions to your FastAPI app
 bind_webmentions(app, handler)
 ```
 
-### SQLAlchemy + Flask
+#### SQLAlchemy + Flask
 
 ```bash
 pip install "webmentions[db,flask]"
@@ -106,14 +108,312 @@ storage = init_db_storage(engine="sqlite:////tmp/webmentions.db")
 handler = WebmentionsHandler(
     storage=storage,
     # This should match the public base URL of your site
-    base_url=f"https://example.com",
+    base_url="https://example.com",
 )
 
 # ...Initialize your Web app here...
 
-# Bind a POST /webmention to your Flask app
+# Bind Webmentions to your Flask app
 bind_webmentions(app, handler)
 ```
+
+#### Generic setup
+
+If you use neither FastAPI nor Flask, you can use Webmentions by modifying your
+application as it follows:
+
+- Create a `WebmentionsHandler` with an attached `WebmentionsStorage`
+
+- Expose a `POST` endpoint for Webmentions that calls
+  `WebmentionsHandler.process_incoming_webmentions(source, target)` when
+  invoked, where `source` and `target` are the URLs of the source and the
+  target of the Webmention, respectively, and they are passed as form
+  parameters.
+
+- Ensure that all the pages that support Webmentions advertise the endpoint
+  either by adding a `Link` header or by adding a `rel="webmention"` link to
+  the body.
+
+Example with a FastAPI app:
+
+```python
+from fastapi import FastAPI, Form, HTTPException
+from fastapi.templating import Jinja2Templates
+from webmentions import WebmentionsHandler
+from webmentions.storage.adapters.db import init_db_storage
+
+app = FastAPI()
+base_url = "https://example.com"
+templates = Jinja2Templates(directory="/path/to/your/templates")
+handler = WebmentionsHandler(
+    storage=init_db_storage(engine="sqlite:////tmp/webmentions.db"),
+    base_url=base_url,
+)
+
+
+# Route to receive Webmentions
+@app.post("/webmention")
+def webmention(
+    source: str | None = Form(default=None),
+    target: str | None = Form(default=None),
+):
+    try:
+        # Forward the Webmention to the handler
+        handler.process_incoming_webmention(source, target)
+    except WebmentionException as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    return {"status": "ok"}
+
+
+# Route that serves your static pages
+@app.get("/article/<path:path>")
+def serve_page(path: str):
+    response = templates.TemplateResponse(path, {"request": request})
+    # Add a Link header to advertise the Webmention endpoint
+    response.headers["Link"] = f'<{base_url}/webmention>; rel="webmention"'
+    return response
+```
+
+#### Generic storage
+
+If you don't want to use `sqlalchemy` as a backend to store Webmentions, you
+can extend `WebmentionsStorage` with your own implementation and bind it to
+the `WebmentionsHandler` instance.
+
+```python
+from webmentions import (
+    Webmention,
+    WebmentionDirection,
+    WebmentionsHandler,
+    WebmentionsStorage,
+)
+
+
+class MyWebmentionsStorage(WebmentionsStorage):
+    def store_webmention(self, mention: Webmention):
+        ...
+
+    def delete_webmention(
+        self,
+        source: str,
+        target: str,
+        direction: WebmentionDirection,
+    ):
+        ...
+
+    def retrieve_webmentions(
+        self, resource: str, direction: WebmentionDirection
+    ) -> list[Webmention]:
+        """
+        Retrieve the stored Webmentions for a given URL.
+
+        :param resource: The URL of the resource associated to the Webmentions
+        :param direction: The direction of the Webmentions (inbound or outbound)
+        :return: A list of Webmentions
+        """
+
+...
+
+storage = MyWebmentionsStorage(...)
+handler = WebmentionsHandler(
+    storage=storage,
+    base_url="https://example.com",
+)
+```
+
+### Sending Webmentions
+
+#### Filesystem monitor
+
+If your pages are served as static files from a folder, you can use the
+`FileSystemMonitor` to automatically send Webmentions when files are added or
+modified.
+
+First install `webmentions` with the `file` extra:
+
+```bash
+pip install "webmentions[file]"
+```
+
+Then add the following code to your app (FastAPI example):
+
+```python
+from webmentions import WebmentionsHandler
+from webmentions.storage.adapters.db import init_db_storage
+from webmentions.storage.adapters.file import FileSystemMonitor
+
+app = FastAPI()
+base_url = "https://example.com"
+static_dir = "/srv/html/articles"
+handler = WebmentionsHandler(
+    storage=init_db_storage(engine="sqlite:////tmp/webmentions.db"),
+    base_url=base_url,
+)
+
+# ...Initialize your Web app and bind the Webmentions handler...
+
+# A function that takes a path to a created/modified/deleted text/* file
+# and maps it to a URL on the Web server to be used as the Webmention source
+def path_to_url(path: str) -> str:
+    # Convert path (absolute) to a path relative to static_dir
+    # and drop the extension.
+    # For example, /srv/http/articles/2022/01/01/article.md
+    # becomes /2022/01/01/article
+    path = path[len(static_dir) + 1 :].rsplit(".", 1)[0].lstrip("/")
+    # Convert the path to a URL on the Web server
+    # For example, /2022/01/01/article
+    # becomes https://example.com/articles/2022/01/01/article
+    return f"{base_url.rstrip('/')}/articles/{path}"
+
+
+# Create the filesystem monitor
+monitor = FileSystemMonitor(
+    # This should match the base path of your static files
+    root_dir=static_dir,
+    handler=handler,
+    file_to_url_mapper=path_to_url,
+)
+
+# Start the monitor before running your app
+monitor.start()
+app.run(...)
+
+# Stop the monitor when your app is stopped
+monitor.stop()
+```
+
+Now every time a `text/*` file is created, modified or deleted (supported:
+text, Markdown and HTML), or you run a `git pull` to update your static files,
+Webmentions for updated resources will be automatically sent to any Web server
+in the mentioned links that supports Webmentions.
+
+#### Generic setup
+
+If you don't store your articles or posts as static files (e.g. a database),
+you can still send Webmentions by explicitly calling the
+`WebmentionsHandler.process_outgoing_webmentions` whenever there are updates
+to your content.
+
+For example:
+
+```python
+from webmentions import ContentTextFormat, WebmentionsHandler
+
+from myapp.storage import db
+
+handler = WebmentionsHandler(...)
+
+def save_post(post):
+    db.save_post(post)
+
+    # Note: This will process both added, updated or deleted mentions
+    # in the provided post
+    handler.process_outgoing_webmentions(
+      source_url=post.url,
+      # Optional. If not passed then the source content will be fetched
+      # from the provided source_url. Otherwise, all links will be parsed
+      # from the provided text. Plain text, Markdown or HTML are supported
+      text=post.text,
+      # Optional. If not passed then the source content type is inferred
+      # either from the provided text or the source_url
+      content_type=ContentTextFormat.MARKDOWN,
+    )
+
+
+def delete_post(post):
+    db.delete_post(post)
+    handler.process_outgoing_webmentions(
+        source_url=post.url,
+        # Pass an empty text to make sure that no links are parsed from cached
+        # versions
+        text="",
+    )
+```
+
+Once `process_outgoing_webmentions` is hooked to your content modifications,
+your Webmentions will be automatically sent whenever there are updates to your
+pages.
+
+## Optimize your pages for Webmentions
+
+The Webmentions recommendation is intentionally simple, and most of the
+implementations only require a source and target URL to be sent to the
+Webmentions endpoint.
+
+It is then usually on the Web server that receives the notification to parse
+any additional metadata from the source URL, such as the title of the article,
+the author, the original publication date, etc.
+
+You can add this information to your pages that support Webmentions by following
+the [W3C recommendations for Semantic Elements](https://www.w3schools.com/html/html5_semantic_elements.asp)
+and the [microformats2](https://microformats.org/wiki/microformats2) specification,
+in particular the [`h-card`](https://microformats.org/wiki/h-card) and
+[`h-entry`](https://microformats.org/wiki/h-entry) elements.
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Advertise the Webmention endpoint -->
+    <link rel="webmention" href="https://example.com/webmention" />
+
+    <title>Example post</title>
+  </head>
+
+  <body>
+    <header>
+      <!-- Author/Publisher (microformats2 h-card) -->
+      <div class="h-card">
+        <a class="u-url p-name" href="https://example.com">Example Author</a>
+        <img class="u-photo" alt="Example Author"
+             src="https://example.com/avatar.jpg" />
+      </div>
+    </header>
+
+    <main>
+      <!-- Post (microformats2 h-entry) -->
+      <article class="h-entry">
+        <h1 class="p-name">Example post</h1>
+        <a class="u-url u-uid" href="https://example.com/posts/example-post">
+          Permalink
+        </a>
+        <time class="dt-published" datetime="2026-02-07T21:03:00+01:00">
+          Feb 7, 2026
+        </time>
+        <div class="e-content">
+          <p>
+            This post mentions
+            <a class="u-in-reply-to" href="https://target.example.org/post/123">a target URL</a>.
+            <!--
+              Other supported options besides u-in-reply-to include:
+
+                - u-like-of (for likes)
+                - u-repost-of (for reposts)
+                - p-rsvp (for RSVPs, supports YES, MAYBE, NO and INTERESTED)
+                - p-location (for location mentions, see https://microformats.org/wiki/h-geo)
+
+              See https://microformats.org/wiki/h-entry#Properties for a full list,
+              including proposed extensions.
+
+              Both u-like-of and u-repost-of support an optional embedded h-cite
+              for more granular details about the referenced content (e.g.
+              author, title or published date)
+            -->
+          </p>
+        </div>
+      </article>
+    </main>
+  </body>
+</html>
+```
+
+If you render your pages following these specifications then any mention on
+target URLs that support Webmention will automatically include rich information
+such as author details, media elements, likes/reposts, location, etc.
 
 ## Tests
 

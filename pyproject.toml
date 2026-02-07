@@ -29,7 +29,8 @@ flask = ["flask"]
 test = ["pytest", "pytest-cov", "sqlalchemy", "fastapi", "uvicorn", "python-multipart", "watchdog", "flask"]
 
 [project.urls]
-homepage = "https://git.platypush.tech/blacklight/webmentions"
+homepage = "https://git.fabiomanganiello.com/webmentions"
+github = "https://github.com/blacklight/webmentions"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]

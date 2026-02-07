@@ -26,7 +26,7 @@ db = ["sqlalchemy"]
 fastapi = ["fastapi", "uvicorn", "python-multipart"]
 file = ["watchdog"]
 flask = ["flask"]
-test = ["pytest", "sqlalchemy"]
+test = ["pytest", "pytest-cov", "sqlalchemy", "fastapi", "uvicorn", "python-multipart", "watchdog", "flask"]
 
 [project.urls]
 homepage = "https://git.platypush.tech/blacklight/webmentions"

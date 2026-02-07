@@ -109,11 +109,16 @@ class DbWebmentionsStorage(WebmentionsStorage):
     ) -> list[Webmention]:
         session = self.session_factory()
         try:
+            resource_column = (
+                self.model.source
+                if direction == WebmentionDirection.OUT
+                else self.model.target
+            )
             return [
                 wm.to_webmention()
                 for wm in session.query(self.model).filter(
                     sa.and_(
-                        self.model.target == resource,
+                        resource_column == resource,
                         self.model.direction == direction,
                     )
                 )

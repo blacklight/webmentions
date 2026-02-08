@@ -113,7 +113,7 @@ def _wait_for_received(
     source_url: str,
     target_url: str,
     direction: WebmentionDirection,
-    timeout: float = 20.0,
+    timeout: float = 8.0,
 ) -> None:
     t0 = time.monotonic()
     while True:
@@ -121,7 +121,7 @@ def _wait_for_received(
         if remaining <= 0:
             raise AssertionError(f"No callback received within {timeout}s")
         try:
-            mention = q.get(timeout=min(1.0, remaining))
+            mention = q.get(timeout=min(0.25, remaining))
         except queue.Empty:
             continue
         if (
@@ -268,12 +268,12 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
             lambda: requests.get(f"{base_a}/health", timeout=2).status_code == 200
         )
         _wait_for(
-            lambda: requests.get(f"{base_b}/health", timeout=2).status_code == 200
+            lambda: requests.get(f"{base_b}/health", timeout=0.5).status_code == 200
         )
 
         fs_a.start_watcher()
         fs_b.start_watcher()
-        time.sleep(0.3)
+        time.sleep(0.05)
         try:
             _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
 
@@ -295,7 +295,7 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 source_url=source_url,
                 target_url=target_url,
                 direction=WebmentionDirection.IN,
-                timeout=20,
+                timeout=8,
             )
             _assert_in_mentions(
                 db_b, target_url=target_url, expected_sources={source_url}
@@ -320,7 +320,7 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 source_url=source_url,
                 target_url=target_url,
                 direction=WebmentionDirection.IN,
-                timeout=20,
+                timeout=8,
             )
             mentions = _assert_in_mentions(
                 db_b, target_url=target_url, expected_sources={source_url}
@@ -337,7 +337,7 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 source_url=source_url,
                 target_url=target_url,
                 direction=WebmentionDirection.IN,
-                timeout=20,
+                timeout=8,
             )
             _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
 
@@ -353,7 +353,7 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 source_url=source_url,
                 target_url=target_url,
                 direction=WebmentionDirection.IN,
-                timeout=20,
+                timeout=8,
             )
             _assert_in_mentions(
                 db_b, target_url=target_url, expected_sources={source_url}
@@ -366,7 +366,7 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 source_url=source_url,
                 target_url=target_url,
                 direction=WebmentionDirection.IN,
-                timeout=20,
+                timeout=8,
             )
             _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
         finally:

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- **Parser:** Enhanced Microformats2 support.
+
+### Documentation / CI
+- **CI:** Added black and flake8 pre-commit hooks.
+- **README:** Added a _Microformats support_ section.
+- **Docs:** Added a link to the repo (and its mirror) in the docs index.
+
+### Tests
+- **Parser:** Extended tests to cover all supported Microformats features.
+
 ## 0.1.4
 
 ### Added

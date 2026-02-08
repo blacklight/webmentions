@@ -4,6 +4,9 @@
 [![Coverage Badge](https://app.codacy.com/project/badge/Coverage/80a5b14c9beb4680a02477c7bd5a3df3)](https://app.codacy.com/gh/blacklight/webmentions/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/80a5b14c9beb4680a02477c7bd5a3df3)](https://app.codacy.com/gh/blacklight/webmentions/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
+[📖 Full reference](https://docs.webmentions.work)
+
+
 A general-purpose library to add Webmentions support to your website.
 
 This library implements support for

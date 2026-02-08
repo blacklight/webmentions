@@ -54,6 +54,8 @@ then the `bind_webmentions` API is available to easily bind the Webmentions
 handler to your app, which provides:
 
 - A `POST /webmentions` endpoint to receive Webmentions
+- A `GET /webmentions` endpoint to return stored Webmentions (accepts
+  `resource` and `direction` parameters)
 - A `Link` header to advertise the Webmention endpoint on all the `text/*`
   responses
 
@@ -136,12 +138,15 @@ application as it follows:
   either by adding a `Link` header or by adding a `rel="webmention"` link to
   the body.
 
+- (Optional) Expose a `GET` endpoint to fetch all the stored Webmentions given
+  a resource URL and a direction.
+
 Example with a FastAPI app:
 
 ```python
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.templating import Jinja2Templates
-from webmentions import WebmentionsHandler
+from webmentions import WebmentionDirection, WebmentionsHandler
 from webmentions.storage.adapters.db import init_db_storage
 
 app = FastAPI()
@@ -166,6 +171,21 @@ def webmentions(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
     return {"status": "ok"}
+
+
+# Route to fetch Webmentions
+@app.get("/webmentions")
+def webmentions(resource: str, direction: str):
+    try:
+        return [
+            mention.to_dict()
+            for mention in handler.retrieve_webmentions(
+                resource,
+                direction=WebmentionDirection.from_raw(direction),
+            )
+        ]
+    except (WebmentionException, ValueError) as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 # Route that serves your static pages

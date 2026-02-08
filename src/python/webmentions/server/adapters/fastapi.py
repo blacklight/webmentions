@@ -70,6 +70,7 @@ def bind_webmentions(
         direction: WebmentionDirection = Query(...),
     ):
         try:
+            direction = WebmentionDirection.from_raw(direction)
             stored = handler.storage.retrieve_webmentions(resource, direction=direction)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e)) from e

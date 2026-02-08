@@ -12,6 +12,16 @@ class WebmentionDirection(str, Enum):
     IN = "incoming"
     OUT = "outgoing"
 
+    @classmethod
+    def from_raw(cls, raw: str) -> "WebmentionDirection":
+        try:
+            return cls(raw.strip().lower())
+        except ValueError:
+            value = getattr(cls, raw.strip().upper(), None)
+            if not value:
+                raise ValueError(f"Unknown direction: {raw}")
+            return value
+
 
 class WebmentionStatus(str, Enum):
     """
@@ -106,6 +116,7 @@ class Webmention:
         """
         :return: A dictionary representation of the Webmention
         """
+
         def _normalize(value):
             if value is None:
                 return None

@@ -70,7 +70,7 @@ def retrieve_webmentions_route(handler: WebmentionsHandler):
         return jsonify({"error": "direction is required"}), 400
 
     try:
-        direction = WebmentionDirection(direction_raw)
+        direction = WebmentionDirection.from_raw(direction_raw)
     except ValueError:
         return jsonify({"error": "invalid direction"}), 400
 

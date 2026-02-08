@@ -44,7 +44,9 @@ def test_start_noop_if_root_dir_missing(monkeypatch, tmp_path):
     on_change = Mock()
     watcher = FileSystemWatcher(str(tmp_path), on_change)
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.isdir", lambda _: False)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.isdir", lambda _: False
+    )
     watcher.start()
 
     assert watcher._watch_observer is None
@@ -55,9 +57,15 @@ def test_start_wires_observer_and_starts_thread(monkeypatch, tmp_path):
     on_change = Mock()
     watcher = FileSystemWatcher(str(tmp_path), on_change)
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.isdir", lambda _: True)
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.Observer", _FakeObserver)
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.threading.Thread", _FakeThread)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.isdir", lambda _: True
+    )
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.Observer", _FakeObserver
+    )
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.threading.Thread", _FakeThread
+    )
 
     watcher.start()
 
@@ -81,7 +89,9 @@ def test_start_wires_observer_and_starts_thread(monkeypatch, tmp_path):
     handler.on_created(_Event(src_path=str(tmp_path / "a.md")))
     handler.on_modified(_Event(src_path=str(tmp_path / "b.md")))
     handler.on_deleted(_Event(src_path=str(tmp_path / "c.md")))
-    handler.on_moved(_Event(src_path=str(tmp_path / "d.md"), dest_path=str(tmp_path / "e.md")))
+    handler.on_moved(
+        _Event(src_path=str(tmp_path / "d.md"), dest_path=str(tmp_path / "e.md"))
+    )
 
     q = list(watcher._watch_queue.queue)
     assert ("created", os.path.abspath(str(tmp_path / "a.md"))) in q
@@ -95,9 +105,15 @@ def test_stop_is_idempotent_and_stops_observer(monkeypatch, tmp_path):
     on_change = Mock()
     watcher = FileSystemWatcher(str(tmp_path), on_change)
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.isdir", lambda _: True)
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.Observer", _FakeObserver)
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.threading.Thread", _FakeThread)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.isdir", lambda _: True
+    )
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.Observer", _FakeObserver
+    )
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.threading.Thread", _FakeThread
+    )
 
     watcher.start()
     observer = watcher._watch_observer
@@ -111,11 +127,15 @@ def test_stop_is_idempotent_and_stops_observer(monkeypatch, tmp_path):
     watcher.stop()
 
 
-def test_enqueue_fs_event_filters_empty_outside_root_and_extension(monkeypatch, tmp_path):
+def test_enqueue_fs_event_filters_empty_outside_root_and_extension(
+    monkeypatch, tmp_path
+):
     on_change = Mock()
     watcher = FileSystemWatcher(str(tmp_path), on_change, extensions=(".md",))
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.abspath", lambda p: p)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.abspath", lambda p: p
+    )
 
     watcher._enqueue_fs_event("modified", "")
     assert watcher._watch_queue.qsize() == 0
@@ -144,11 +164,15 @@ def test_flush_debounced_throttles_and_dispatches(monkeypatch, tmp_path):
     watcher._last_event_type[path] = "modified"
 
     watcher._last_processed_at = 11.5
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.time.monotonic", lambda: 12.0)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.time.monotonic", lambda: 12.0
+    )
     watcher._flush_debounced()
     assert events == []
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.time.monotonic", lambda: 20.0)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.time.monotonic", lambda: 20.0
+    )
 
     def _build_change(event_type, abs_path):
         assert event_type == "modified"
@@ -175,7 +199,9 @@ def test_flush_debounced_swallows_on_change_exceptions(monkeypatch, tmp_path):
     watcher._last_event_at[path] = 0.0
     watcher._last_event_type[path] = "created"
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.time.monotonic", lambda: 10.0)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.time.monotonic", lambda: 10.0
+    )
     monkeypatch.setattr(watcher, "_build_change", lambda *_: Mock())
 
     watcher._flush_debounced()
@@ -187,7 +213,9 @@ def test_build_change_deleted_for_deleted_event_or_missing_file(monkeypatch, tmp
 
     path = str(tmp_path / "missing.md")
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.isfile", lambda _: False)
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.isfile", lambda _: False
+    )
 
     change1 = watcher._build_change("deleted", path)
     assert change1 is not None
@@ -207,14 +235,19 @@ def test_build_change_deleted_for_deleted_event_or_missing_file(monkeypatch, tmp
         ("modified", ContentChangeType.EDITED),
     ],
 )
-def test_build_change_reads_text_and_guesses_format(monkeypatch, tmp_path, event_type, expected):
+def test_build_change_reads_text_and_guesses_format(
+    monkeypatch, tmp_path, event_type, expected
+):
     on_change = Mock()
     watcher = FileSystemWatcher(str(tmp_path), on_change)
 
     path = tmp_path / "a.md"
     path.write_text("hello", encoding="utf-8")
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.isfile", lambda p: str(p) == str(path))
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.isfile",
+        lambda p: str(p) == str(path),
+    )
 
     change = watcher._build_change(event_type, str(path))
     assert change is not None
@@ -230,7 +263,10 @@ def test_build_change_returns_none_if_format_unknown(monkeypatch, tmp_path):
     path = tmp_path / "a.unknown"
     path.write_text("hello", encoding="utf-8")
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.isfile", lambda p: str(p) == str(path))
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.isfile",
+        lambda p: str(p) == str(path),
+    )
 
     assert watcher._build_change("modified", str(path)) is None
 
@@ -242,7 +278,10 @@ def test_build_change_sets_text_none_on_read_error(monkeypatch, tmp_path):
     path = tmp_path / "a.md"
     path.write_text("hello", encoding="utf-8")
 
-    monkeypatch.setattr("webmentions.storage.adapters.file._watcher.os.path.isfile", lambda p: str(p) == str(path))
+    monkeypatch.setattr(
+        "webmentions.storage.adapters.file._watcher.os.path.isfile",
+        lambda p: str(p) == str(path),
+    )
 
     def _open(*_, **__):
         raise OSError("nope")
@@ -259,7 +298,10 @@ def test_guess_text_format():
     assert FileSystemWatcher._guess_text_format("/x/a.htm") == ContentTextFormat.HTML
     assert FileSystemWatcher._guess_text_format("/x/a.html") == ContentTextFormat.HTML
     assert FileSystemWatcher._guess_text_format("/x/a.md") == ContentTextFormat.MARKDOWN
-    assert FileSystemWatcher._guess_text_format("/x/a.markdown") == ContentTextFormat.MARKDOWN
+    assert (
+        FileSystemWatcher._guess_text_format("/x/a.markdown")
+        == ContentTextFormat.MARKDOWN
+    )
     assert FileSystemWatcher._guess_text_format("/x/a.txt") == ContentTextFormat.TEXT
     assert FileSystemWatcher._guess_text_format("/x/a.text") == ContentTextFormat.TEXT
     assert FileSystemWatcher._guess_text_format("/x/a.bin") is None

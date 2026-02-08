@@ -12,7 +12,9 @@ from webmentions import (
 
 def test_process_incoming_webmention_sets_initial_mention_status(monkeypatch):
     storage = Mock()
-    handler = WebmentionsHandler(storage=storage, initial_mention_status=WebmentionStatus.PENDING)
+    handler = WebmentionsHandler(
+        storage=storage, initial_mention_status=WebmentionStatus.PENDING
+    )
 
     parsed = Webmention(
         source="https://example.com/source",
@@ -80,10 +82,9 @@ def test_custom_on_mention_processed_confirms_only_non_spam_incoming(
 
         # Delete Webmentions coming from notorious spam domains or authors
         if mention.direction == WebmentionDirection.IN:
-            if (
-                mention.source in ["https://example.com/spam"]
-                or mention.author_name in ["Spam Author"]
-            ):
+            if mention.source in [
+                "https://example.com/spam"
+            ] or mention.author_name in ["Spam Author"]:
                 mention.status = WebmentionStatus.DELETED
             # Otherwise, confirm the Webmention
             else:
@@ -128,7 +129,9 @@ def test_custom_on_mention_processed_ignores_outgoing_mentions():
 
         handler.storage.store_webmention(mention)
 
-    handler = WebmentionsHandler(storage=storage, on_mention_processed=on_mention_processed)
+    handler = WebmentionsHandler(
+        storage=storage, on_mention_processed=on_mention_processed
+    )
 
     outgoing = Webmention(
         source="https://example.com/source",

@@ -1,5 +1,5 @@
 def webmention_link_header_value(endpoint: str) -> str:
-    return f"<{endpoint}>; rel=\"webmention\""
+    return f'<{endpoint}>; rel="webmention"'
 
 
 def append_link_header(existing: str | None, to_add: str) -> str:

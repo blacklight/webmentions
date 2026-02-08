@@ -2,7 +2,9 @@ import argparse
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run a local Webmentions example server")
+    parser = argparse.ArgumentParser(
+        description="Run a local Webmentions example server"
+    )
     parser.add_argument(
         "--backend",
         choices=("fastapi", "flask"),

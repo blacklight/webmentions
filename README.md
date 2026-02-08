@@ -544,3 +544,18 @@ such as author details, media elements, likes/reposts, location, etc.
 pip install -e ".[tests]"
 pytest tests
 ```
+
+## Development
+
+Install development dependencies and enable pre-commit hooks:
+
+```bash
+pip install -e ".[dev]"
+pre-commit install
+```
+
+Run all hooks manually:
+
+```bash
+pre-commit run --all-files
+```

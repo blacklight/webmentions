@@ -28,6 +28,7 @@ file = ["watchdog"]
 flask = ["flask"]
 docs = ["sphinx>=7", "sphinx-rtd-theme>=2", "myst-parser>=2"]
 test = ["pytest", "pytest-cov", "sqlalchemy", "fastapi", "uvicorn", "python-multipart", "watchdog", "flask"]
+dev = ["pre-commit", "black", "flake8"]
 
 [project.urls]
 homepage = "https://git.fabiomanganiello.com/webmentions"

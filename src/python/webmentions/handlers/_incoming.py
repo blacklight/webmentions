@@ -4,7 +4,7 @@ from typing import Any
 
 from ..storage import WebmentionsStorage
 from .._exceptions import WebmentionException, WebmentionGone
-from .._model import Webmention, WebmentionDirection
+from .._model import Webmention, WebmentionDirection, WebmentionStatus
 from ._common import on_mention_callback_wrapper
 from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
 from ._parser import WebmentionsRequestParser
@@ -26,6 +26,7 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         user_agent: str = DEFAULT_USER_AGENT,
         on_mention_processed=None,
         on_mention_deleted=None,
+        init_mention_status: WebmentionStatus = WebmentionStatus.CONFIRMED,
         **_,
     ):
         self.parser = WebmentionsRequestParser(
@@ -34,6 +35,7 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         self._storage = storage
         self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)
         self._on_mention_deleted = on_mention_callback_wrapper(on_mention_deleted)
+        self._initial_mention_status = init_mention_status
 
     def process_incoming_webmention(
         self, source: str | None, target: str | None
@@ -69,6 +71,7 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         now = datetime.now(timezone.utc)
         mention.created_at = mention.created_at or mention.published or now
         mention.updated_at = mention.updated_at or now
+        mention.status = self._initial_mention_status
         ret = self._storage.store_webmention(mention)
         self._on_mention_processed(mention)
         logger.info("Processed Webmention from '%s' to '%s'", source, target)

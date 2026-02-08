@@ -34,7 +34,7 @@ class DbWebmention:
     status = sa.Column(
         sa.Enum(WebmentionStatus, name="webmention_status"),
         nullable=False,
-        default=WebmentionStatus.PENDING,
+        default=WebmentionStatus.CONFIRMED,
     )
     mention_type = sa.Column(
         sa.Enum(WebmentionType, name="webmention_type"), nullable=False

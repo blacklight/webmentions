@@ -16,11 +16,11 @@ class WebmentionDirection(str, Enum):
 class WebmentionStatus(str, Enum):
     """
     Enum representing the status of a Webmention
-    (pending, verified, or deleted).
+    (pending, confirmed, or deleted).
     """
 
     PENDING = "pending"
-    VERIFIED = "verified"
+    CONFIRMED = "confirmed"
     DELETED = "deleted"
 
 
@@ -95,7 +95,7 @@ class Webmention:
     author_url: str | None = None
     author_photo: str | None = None
     published: datetime | None = None
-    status: WebmentionStatus = WebmentionStatus.PENDING
+    status: WebmentionStatus = WebmentionStatus.CONFIRMED
     mention_type: WebmentionType = WebmentionType.UNKNOWN
     mention_type_raw: str | None = None
     metadata: dict = field(default_factory=dict)
@@ -146,7 +146,7 @@ class Webmention:
             **{
                 **{k: v for k, v in data.items() if k in cls.__dataclass_fields__},
                 "direction": direction,
-                "status": data.get("status") or WebmentionStatus.PENDING,
+                "status": data.get("status") or WebmentionStatus.CONFIRMED,
                 "mention_type": mention_type,
                 "mention_type_raw": mention_type.value,
                 "published": published,

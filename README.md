@@ -377,6 +377,64 @@ handler = WebmentionsHandler(
 )
 ```
 
+## Filtering and moderation
+
+By default any Webmention sent to your server will be processed if it matches a
+target on your server.
+
+You can change this behaviour by specifying `initial_mention_status` on your
+Webmentions handler (supported: `WebmentionStatus.CONFIRMED`,
+`WebmentionStatus.PENDING`, `WebmentionStatus.DELETED`).
+
+Note that if you pass `PENDING` as an initial status, you will need to
+explicitly approve the Webmentions to make them visible to your users.
+
+You have two options:
+
+- Manually set the `status` flag for the Webmention on your storage
+- Pass an `on_mention_processed` callback to your Webmentions handler that will
+  perform any moderation or filtering. For example:
+
+```python
+from webmentions import (
+    Webmention,
+    WebmentionDirection,
+    WebmentionStatus,
+    WebmentionsHandler,
+)
+from webmentions.storage.adapters.db import init_db_storage
+
+base_url = "https://example.com"
+
+
+def on_mention_processed(mention: Webmention):
+    # Don't do anything for outgoing mentions
+    if mention.direction == WebmentionDirection.OUT:
+        return
+
+    # Delete Webmentions coming from notorious spam domains or authors
+    if mention.direction == WebmentionDirection.IN:
+        if (
+            mention.source in ["https://example.com/spam"] or
+            mention.author_name in ["Spam Author"]
+        ):
+            mention.status = WebmentionStatus.DELETED
+        # Otherwise, confirm the Webmention
+        else:
+            mention.status = WebmentionStatus.CONFIRMED
+
+    # Save the modified mention
+    handler.storage.store_webmention(mention)
+
+
+handler = WebmentionsHandler(
+    storage=init_db_storage(engine="sqlite:////tmp/webmentions.db"),
+    base_url=base_url,
+    on_mention_processed=on_mention_processed,
+    initial_mention_status=WebmentionStatus.PENDING,
+)
+```
+
 ## Optimize your pages for Webmentions
 
 The Webmentions recommendation is intentionally simple, and most of the

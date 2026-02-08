@@ -2,7 +2,12 @@ import logging
 from typing import Any, Callable
 
 from ..storage import WebmentionsStorage
-from .._model import ContentTextFormat, Webmention, WebmentionDirection
+from .._model import (
+    ContentTextFormat,
+    Webmention,
+    WebmentionDirection,
+    WebmentionStatus,
+)
 from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
 from ._incoming import IncomingWebmentionsProcessor
 from ._outgoing import OutgoingWebmentionsProcessor
@@ -21,6 +26,14 @@ class WebmentionsHandler:
     :param exclude_netlocs: A set of netlocs to exclude when processing outgoing Webmentions
     :param on_mention_processed: A callback to call when a Webmention is processed
     :param on_mention_deleted: A callback to call when a Webmention is deleted
+    :param initial_mention_status: The initial status of Webmentions (see
+        :class:`WebmentionStatus`). If not specified, defaults to
+        :attr:`WebmentionStatus.CONFIRMED`. If you set this to
+        :attr:`WebmentionStatus.PENDING` then you will need to manually mark
+        mentions as confirmed on your storage, or create your on
+        ``on_mention_processed`` that performs custom filtering or moderation
+        and calls ``handler.storage.store_webmention(webmention)`` with the right
+        status after processing.
     """
 
     def __init__(
@@ -33,6 +46,7 @@ class WebmentionsHandler:
         exclude_netlocs: set[str] | None = None,
         on_mention_processed: Callable[[Webmention], None] | None = None,
         on_mention_deleted: Callable[[Webmention], None] | None = None,
+        initial_mention_status: WebmentionStatus = WebmentionStatus.CONFIRMED,
         **kwargs,
     ):
         self.storage = storage
@@ -43,6 +57,7 @@ class WebmentionsHandler:
             user_agent=user_agent,
             on_mention_processed=on_mention_processed,
             on_mention_deleted=on_mention_deleted,
+            init_mention_status=initial_mention_status,
             **kwargs,
         )
         self.outgoing = OutgoingWebmentionsProcessor(

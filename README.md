@@ -1,5 +1,6 @@
 ![Webmentions](https://s3.fabiomanganiello.com/fabio/img/webmentions.png)
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ca103f9f9f614feb99f5e721271dd87c)](https://app.codacy.com/gh/blacklight/webmentions?utm_source=github.com&utm_medium=referral&utm_content=blacklight/webmentions&utm_campaign=Badge_Grade)
 [![build](https://github.com/blacklight/webmentions/actions/workflows/build.yml/badge.svg)](https://github.com/blacklight/webmentions/actions/workflows/build.yml)
 
 A general-purpose library to add Webmentions support to your website.

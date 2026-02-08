@@ -343,29 +343,28 @@ mentioned, or to keep track of the number of mentions sent by your pages, or to
 perform any automated moderation or filtering when mentions are processed etc.
 
 ```python
-from webmentions import WebmentionDirection, WebmentionsHandler
+from webmentions import Webmention, WebmentionDirection, WebmentionsHandler
+from webmentions.storage.adapters.db import init_db_storage
+
+base_url = "https://example.com"
 
 
-def on_mention_processed(
-    source: str,
-    target: str,
-    direction: WebmentionDirection,
-):
-    if direction == WebmentionDirection.INCOMING:
-        print(f"Processed incoming Webmention from {source} to {target}")
+def on_mention_processed(mention: Webmention):
+    if mention.direction == WebmentionDirection.IN:
+        print(
+            f"Processed incoming Webmention from {mention.source} to {mention.target}"
+        )
     else:
-        print(f"Processed outgoing Webmention from {source} to {target}")
+        print(
+            f"Processed outgoing Webmention from {mention.source} to {mention.target}"
+        )
 
 
-def on_mention_deleted(
-    source: str,
-    target: str,
-    direction: WebmentionDirection,
-):
-    if direction == WebmentionDirection.INCOMING:
-        print(f"Deleted incoming Webmention from {source} to {target}")
+def on_mention_deleted(mention: Webmention):
+    if mention.direction == WebmentionDirection.IN:
+        print(f"Deleted incoming Webmention from {mention.source} to {mention.target}")
     else:
-        print(f"Deleted outgoing Webmention from {source} to {target}")
+        print(f"Deleted outgoing Webmention from {mention.source} to {mention.target}")
 
 
 handler = WebmentionsHandler(

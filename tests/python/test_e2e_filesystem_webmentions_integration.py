@@ -10,6 +10,7 @@ import pytest
 import requests
 
 from webmentions import WebmentionDirection
+from webmentions._model import Webmention
 from webmentions.handlers import WebmentionsHandler
 from webmentions.storage.adapters.db import init_db_storage
 from webmentions.storage.adapters.file import FileSystemMonitor
@@ -107,7 +108,7 @@ def _assert_in_mentions(storage, *, target_url: str, expected_sources: set[str])
 
 
 def _wait_for_received(
-    q: "queue.Queue[tuple[str, str, WebmentionDirection]]",
+    q: "queue.Queue[Webmention]",
     *,
     source_url: str,
     target_url: str,
@@ -120,10 +121,14 @@ def _wait_for_received(
         if remaining <= 0:
             raise AssertionError(f"No callback received within {timeout}s")
         try:
-            source, target, d = q.get(timeout=min(1.0, remaining))
+            mention = q.get(timeout=min(1.0, remaining))
         except queue.Empty:
             continue
-        if source == source_url and target == target_url and d == direction:
+        if (
+            mention.source == source_url
+            and mention.target == target_url
+            and mention.direction == direction
+        ):
             return
 
 
@@ -145,14 +150,14 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
     db_a = init_db_storage(engine=f"sqlite:///{tmp_path / 'a.sqlite'}")
     db_b = init_db_storage(engine=f"sqlite:///{tmp_path / 'b.sqlite'}")
 
-    received_b: "queue.Queue[tuple[str, str, WebmentionDirection]]" = queue.Queue()
+    received_b: "queue.Queue[Webmention]" = queue.Queue()
 
     handler_a = WebmentionsHandler(storage=db_a, base_url=base_a)
     handler_b = WebmentionsHandler(
         storage=db_b,
         base_url=base_b,
-        on_mention_processed=lambda s, t, d: received_b.put((s, t, d)),
-        on_mention_deleted=lambda s, t, d: received_b.put((s, t, d)),
+        on_mention_processed=lambda m: received_b.put(m),
+        on_mention_deleted=lambda m: received_b.put(m),
     )
 
     fs_a = FileSystemMonitor(

@@ -4,7 +4,7 @@ from typing import Any
 
 from ..storage import WebmentionsStorage
 from .._exceptions import WebmentionException, WebmentionGone
-from .._model import WebmentionDirection
+from .._model import Webmention, WebmentionDirection
 from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
 from ._parser import WebmentionsRequestParser
 
@@ -55,7 +55,9 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             )
 
             if self._on_mention_deleted is not None:
-                self._on_mention_deleted(source, target, WebmentionDirection.IN)
+                self._on_mention_deleted(
+                    Webmention(source=source, target=target, direction=WebmentionDirection.IN)
+                )
 
             logger.info("Deleted Webmention from '%s' to '%s'", source, target)
             return None
@@ -67,6 +69,6 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         mention.updated_at = mention.updated_at or now
         ret = self._storage.store_webmention(mention)
         if self._on_mention_processed is not None:
-            self._on_mention_processed(source, target, WebmentionDirection.IN)
+            self._on_mention_processed(mention)
         logger.info("Processed Webmention from '%s' to '%s'", source, target)
         return ret

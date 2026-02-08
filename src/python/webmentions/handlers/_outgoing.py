@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import requests
 
 from ..storage import WebmentionsStorage
-from .._model import ContentTextFormat, WebmentionDirection
+from .._model import ContentTextFormat, Webmention, WebmentionDirection
 from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,11 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             self._storage.mark_sent(source_url, target_url)
             if self._on_mention_processed is not None:
                 self._on_mention_processed(
-                    source_url, target_url, WebmentionDirection.OUT
+                    Webmention(
+                        source=source_url,
+                        target=target_url,
+                        direction=WebmentionDirection.OUT,
+                    )
                 )
         except Exception as e:
             logger.info(
@@ -125,7 +129,13 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
                 source_url, target_url, direction=WebmentionDirection.OUT
             )
             if self._on_mention_deleted is not None:
-                self._on_mention_deleted(source_url, target_url, WebmentionDirection.OUT)
+                self._on_mention_deleted(
+                    Webmention(
+                        source=source_url,
+                        target=target_url,
+                        direction=WebmentionDirection.OUT,
+                    )
+                )
         except Exception as e:
             logger.info(
                 "Outgoing Webmention deletion failed (source=%s target=%s): %s",

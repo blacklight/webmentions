@@ -31,9 +31,8 @@ class WebmentionsHandler:
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         user_agent: str = DEFAULT_USER_AGENT,
         exclude_netlocs: set[str] | None = None,
-        on_mention_processed: Callable[[str, str, WebmentionDirection], None]
-        | None = None,
-        on_mention_deleted: Callable[[str, str, WebmentionDirection], None] | None = None,
+        on_mention_processed: Callable[[Webmention], None] | None = None,
+        on_mention_deleted: Callable[[Webmention], None] | None = None,
         **kwargs,
     ):
         self.storage = storage

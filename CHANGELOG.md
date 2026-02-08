@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Webmention handler callbacks for mentions sent/received/deleted
+- `initial_mention_status` option for incoming mentions
+
+### Fixed
+
+- Wrap Webmention callbacks in `try/except` to prevent callback errors from crashing the app
+
+### Testing
+
+- Expanded unit test coverage across handler, outgoing processor, adapters, parser, file watcher, and model
+- Improved E2E test performance
+
+### CI
+
+- Added GitHub Actions coverage reporting
+
+### Documentation
+
+- Project URL metadata and README updates (badges)
+
 ## 0.1.2
 
 ### Added

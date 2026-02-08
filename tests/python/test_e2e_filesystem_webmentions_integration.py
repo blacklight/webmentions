@@ -1,4 +1,5 @@
 import os
+import queue
 import socket
 import threading
 import time
@@ -105,6 +106,47 @@ def _assert_in_mentions(storage, *, target_url: str, expected_sources: set[str])
     return mentions
 
 
+def _wait_for_received(
+    q: "queue.Queue[tuple[str | None, str | None]]",
+    *,
+    source_url: str,
+    target_url: str,
+    timeout: float = 20.0,
+) -> None:
+    t0 = time.monotonic()
+    while True:
+        remaining = timeout - (time.monotonic() - t0)
+        if remaining <= 0:
+            raise AssertionError(f"No callback received within {timeout}s")
+        try:
+            source, target = q.get(timeout=min(1.0, remaining))
+        except queue.Empty:
+            continue
+        if source == source_url and target == target_url:
+            return
+
+
+def _wait_for_deleted(
+    q: "queue.Queue[tuple[WebmentionDirection, str, str]]",
+    *,
+    direction: WebmentionDirection,
+    source_url: str,
+    target_url: str,
+    timeout: float = 20.0,
+) -> None:
+    t0 = time.monotonic()
+    while True:
+        remaining = timeout - (time.monotonic() - t0)
+        if remaining <= 0:
+            raise AssertionError(f"No callback received within {timeout}s")
+        try:
+            d, source, target = q.get(timeout=min(1.0, remaining))
+        except queue.Empty:
+            continue
+        if d == direction and source == source_url and target == target_url:
+            return
+
+
 @pytest.mark.integration
 @pytest.mark.parametrize("adapter", ["flask", "fastapi"])
 def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
@@ -123,8 +165,16 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
     db_a = init_db_storage(engine=f"sqlite:///{tmp_path / 'a.sqlite'}")
     db_b = init_db_storage(engine=f"sqlite:///{tmp_path / 'b.sqlite'}")
 
+    received_b: "queue.Queue[tuple[str | None, str | None]]" = queue.Queue()
+    deleted_b: "queue.Queue[tuple[WebmentionDirection, str, str]]" = queue.Queue()
+
     handler_a = WebmentionsHandler(storage=db_a, base_url=base_a)
-    handler_b = WebmentionsHandler(storage=db_b, base_url=base_b)
+    handler_b = WebmentionsHandler(
+        storage=db_b,
+        base_url=base_b,
+        on_incoming_received=lambda s, t: received_b.put((s, t)),
+        on_webmention_deleted=lambda d, s, t: deleted_b.put((d, s, t)),
+    )
 
     fs_a = FileSystemMonitor(
         handler_a,
@@ -258,14 +308,11 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
 </body></html>""",
             )
 
-            _wait_for(
-                lambda: len(
-                    _assert_in_mentions(
-                        db_b, target_url=target_url, expected_sources={source_url}
-                    )
-                )
-                == 1,
-                timeout=20,
+            _wait_for_received(
+                received_b, source_url=source_url, target_url=target_url, timeout=20
+            )
+            _assert_in_mentions(
+                db_b, target_url=target_url, expected_sources={source_url}
             )
 
             # 2) Update resource (should update stored fields)
@@ -282,28 +329,27 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
 </body></html>""",
             )
 
-            def _title_updated() -> bool:
-                mentions = _assert_in_mentions(
-                    db_b, target_url=target_url, expected_sources={source_url}
-                )
-                return bool(mentions and (mentions[0].title == "Source v2"))
-
-            _wait_for(_title_updated, timeout=20)
+            _wait_for_received(
+                received_b, source_url=source_url, target_url=target_url, timeout=20
+            )
+            mentions = _assert_in_mentions(
+                db_b, target_url=target_url, expected_sources={source_url}
+            )
+            assert mentions and (mentions[0].title == "Source v2")
 
             # 3) Remove mention from resource
             _write(
                 source_file,
                 "<html><head><title>Source v3</title></head><body>no links</body></html>",
             )
-            _wait_for(
-                lambda: len(
-                    _assert_in_mentions(
-                        db_b, target_url=target_url, expected_sources=set()
-                    )
-                )
-                == 0,
+            _wait_for_deleted(
+                deleted_b,
+                direction=WebmentionDirection.IN,
+                source_url=source_url,
+                target_url=target_url,
                 timeout=20,
             )
+            _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
 
             # 4) Add mention again
             _write(
@@ -312,27 +358,23 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
 <meta property=\"article:published_time\" content=\"2026-02-07T00:00:00+00:00\" />
 </head><body>again <a href=\"{target_url}\">t</a></body></html>""",
             )
-            _wait_for(
-                lambda: len(
-                    _assert_in_mentions(
-                        db_b, target_url=target_url, expected_sources={source_url}
-                    )
-                )
-                == 1,
-                timeout=20,
+            _wait_for_received(
+                received_b, source_url=source_url, target_url=target_url, timeout=20
+            )
+            _assert_in_mentions(
+                db_b, target_url=target_url, expected_sources={source_url}
             )
 
             # 5) Remove the resource entirely
             _delete(source_file)
-            _wait_for(
-                lambda: len(
-                    _assert_in_mentions(
-                        db_b, target_url=target_url, expected_sources=set()
-                    )
-                )
-                == 0,
+            _wait_for_deleted(
+                deleted_b,
+                direction=WebmentionDirection.IN,
+                source_url=source_url,
+                target_url=target_url,
                 timeout=20,
             )
+            _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
         finally:
             fs_a.stop_watcher()
             fs_b.stop_watcher()

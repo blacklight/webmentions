@@ -23,12 +23,18 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         base_url: str | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         user_agent: str = DEFAULT_USER_AGENT,
+        on_incoming_received=None,
+        on_webmention_deleted=None,
+        on_mention_received=None,
         **_,
     ):
         self.parser = WebmentionsRequestParser(
             base_url=base_url, http_timeout=http_timeout, user_agent=user_agent
         )
         self._storage = storage
+        self._on_incoming_received = on_incoming_received
+        self._on_webmention_deleted = on_webmention_deleted
+        self._on_mention_received = on_mention_received
 
     def process_incoming_webmention(
         self, source: str | None, target: str | None
@@ -50,6 +56,9 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
                 source, target, direction=WebmentionDirection.IN
             )
 
+            if self._on_webmention_deleted is not None:
+                self._on_webmention_deleted(WebmentionDirection.IN, source, target)
+
             logger.info("Deleted Webmention from '%s' to '%s'", source, target)
             return None
         except ValueError as e:
@@ -59,5 +68,10 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         mention.created_at = mention.created_at or mention.published or now
         mention.updated_at = mention.updated_at or now
         ret = self._storage.store_webmention(mention)
+        if self._on_incoming_received is not None:
+            self._on_incoming_received(source, target)
+
+        if self._on_mention_received is not None:
+            self._on_mention_received(source, target)
         logger.info("Processed Webmention from '%s' to '%s'", source, target)
         return ret

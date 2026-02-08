@@ -335,6 +335,44 @@ Once `process_outgoing_webmentions` is hooked to your content modifications,
 your Webmentions will be automatically sent whenever there are updates to your
 pages.
 
+## Add notifications to mentions
+
+You may want to add your custom callbacks when a Webmention is sent or received -
+for example to send notifications to your users when some of their content is
+mentioned, or to keep track of the number of mentions sent by your pages.
+
+```python
+from webmentions import WebmentionDirection, WebmentionsHandler
+
+
+def on_incoming_received(source: str, target: str):
+    print(f"Received Webmention from {source} to {target}")
+
+
+def on_outgoing_sent(source: str, target: str):
+    print(f"Sent Webmention from {source} to {target}")
+
+
+def on_webmention_deleted(
+    direction: WebmentionDirection,
+    source: str,
+    target: str,
+):
+    if direction == WebmentionDirection.INCOMING:
+        print(f"Deleted incoming Webmention from {source} to {target}")
+    else:
+        print(f"Deleted outgoing Webmention from {source} to {target}")
+
+
+handler = WebmentionsHandler(
+    storage=init_db_storage(engine="sqlite:////tmp/webmentions.db"),
+    base_url=base_url,
+    on_incoming_received=on_incoming_received,
+    on_outgoing_sent=on_outgoing_sent,
+    on_webmention_deleted=on_webmention_deleted,
+)
+```
+
 ## Optimize your pages for Webmentions
 
 The Webmentions recommendation is intentionally simple, and most of the

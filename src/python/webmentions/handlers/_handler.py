@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from ..storage import WebmentionsStorage
 from .._model import ContentTextFormat, Webmention, WebmentionDirection
@@ -19,6 +19,10 @@ class WebmentionsHandler:
     :param http_timeout: The HTTP timeout for fetching source URLs
     :param user_agent: The User-Agent header to use when fetching source URLs
     :param exclude_netlocs: A set of netlocs to exclude when processing outgoing Webmentions
+    :param on_incoming_received: A callback to call when an incoming Webmention is received.
+        Takes the source and target URLs as arguments.
+    :param on_outgoing_sent: A callback to call when an outgoing Webmention is sent
+        Takes the source and target URLs as arguments.
     """
 
     def __init__(
@@ -29,6 +33,11 @@ class WebmentionsHandler:
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         user_agent: str = DEFAULT_USER_AGENT,
         exclude_netlocs: set[str] | None = None,
+        on_incoming_received: Callable[[str | None, str | None], None] | None = None,
+        on_outgoing_sent: Callable[[str, str], None] | None = None,
+        on_webmention_deleted: (
+            Callable[[WebmentionDirection, str, str], None] | None
+        ) = None,
         **kwargs,
     ):
         self.storage = storage
@@ -37,6 +46,8 @@ class WebmentionsHandler:
             base_url=base_url,
             http_timeout=http_timeout,
             user_agent=user_agent,
+            on_incoming_received=on_incoming_received,
+            on_webmention_deleted=on_webmention_deleted,
             **kwargs,
         )
         self.outgoing = OutgoingWebmentionsProcessor(
@@ -44,6 +55,8 @@ class WebmentionsHandler:
             user_agent=user_agent,
             exclude_netlocs=exclude_netlocs,
             http_timeout=http_timeout,
+            on_outgoing_sent=on_outgoing_sent,
+            on_webmention_deleted=on_webmention_deleted,
             **kwargs,
         )
 

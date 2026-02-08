@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.4
 
 ### Added
 - **API:** Added `GET /webmentions` endpoint to `bind_webmentions`.

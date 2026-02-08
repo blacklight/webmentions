@@ -9,9 +9,11 @@ if getattr(fastapi_upstream, "__file__", None) == __file__:
 FastAPI = fastapi_upstream.FastAPI
 Form = fastapi_upstream.Form
 HTTPException = fastapi_upstream.HTTPException
+Query = fastapi_upstream.Query
 
 from ...handlers import WebmentionsHandler
 from ..._exceptions import WebmentionException
+from ..._model import WebmentionDirection
 from ._common import append_link_header, webmention_link_header_value
 
 
@@ -61,5 +63,17 @@ def bind_webmentions(
             raise HTTPException(status_code=400, detail=str(e)) from e
 
         return {"status": "ok"}
+
+    @app.get(route)
+    def retrieve_webmentions(
+        resource: str = Query(...),
+        direction: WebmentionDirection = Query(...),
+    ):
+        try:
+            stored = handler.storage.retrieve_webmentions(resource, direction=direction)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
+        return [wm.to_dict() for wm in stored]
 
     return webmention

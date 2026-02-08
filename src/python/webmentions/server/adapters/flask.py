@@ -13,6 +13,7 @@ request = flask_upstream.request
 
 from ...handlers import WebmentionsHandler
 from ..._exceptions import WebmentionException
+from ..._model import WebmentionDirection
 from ._common import append_link_header, webmention_link_header_value
 
 
@@ -60,6 +61,27 @@ def webmention_route(handler: WebmentionsHandler):
     return jsonify({"status": "ok"})
 
 
+def retrieve_webmentions_route(handler: WebmentionsHandler):
+    resource = request.args.get("resource")
+    direction_raw = request.args.get("direction")
+    if not resource:
+        return jsonify({"error": "resource is required"}), 400
+    if not direction_raw:
+        return jsonify({"error": "direction is required"}), 400
+
+    try:
+        direction = WebmentionDirection(direction_raw)
+    except ValueError:
+        return jsonify({"error": "invalid direction"}), 400
+
+    try:
+        stored = handler.storage.retrieve_webmentions(resource, direction=direction)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    return jsonify([wm.to_dict() for wm in stored])
+
+
 def bind_webmentions(
     app: Flask, handler: "WebmentionsHandler", route: str = "/webmentions"
 ):
@@ -77,8 +99,16 @@ def bind_webmentions(
     def _route():
         return webmention_route(handler)
 
+    def _get_route():
+        return retrieve_webmentions_route(handler)
+
     endpoint_name = f"webmention_{abs(hash(route))}"
     app.add_url_rule(route, endpoint=endpoint_name, view_func=_route, methods=["POST"])
+
+    endpoint_get_name = f"webmention_get_{abs(hash(route))}"
+    app.add_url_rule(
+        route, endpoint=endpoint_get_name, view_func=_get_route, methods=["GET"]
+    )
     return route
 
 

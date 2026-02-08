@@ -46,6 +46,9 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         :param source: The source URL of the Webmention
         :param target: The target URL of the Webmention
         """
+        if source is None or target is None:
+            return None
+
         logger.info("Received Webmention from '%s' to '%s'", source, target)
 
         try:

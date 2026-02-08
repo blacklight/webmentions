@@ -90,6 +90,9 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         removed_pool = ThreadPoolExecutor(max_workers=10)
 
         for target_url in sorted(new_targets):
+            if source_url == target_url:
+                continue  # Ignore self-mentions
+
             added_pool.submit(self._notify_added, source_url, target_url)
 
         for target_url in sorted(removed):

@@ -538,6 +538,84 @@ If you render your pages following these specifications then any mention on
 target URLs that support Webmention will automatically include rich information
 such as author details, media elements, likes/reposts, location, etc.
 
+## Microformats support
+
+When processing incoming Webmentions, this library will try to parse the source
+document using [microformats2](https://microformats.org/wiki/microformats2).
+
+If an `h-entry` is found, common `h-entry` properties are mapped to the main
+`Webmention` fields (e.g. `title`, `published`, `content`, author details).
+Any additional microformats2 data is stored under `Webmention.metadata`, so
+storage backends and renderers can use it without requiring changes to the core
+model.
+
+In particular:
+
+- **`metadata["mf2"]`** contains the parsed `h-entry` details used by the
+  receiver (response type properties, categories, syndication links, etc.).
+- **`metadata["comments"]`** (when present) contains nested comments discovered
+  via the `comment` property (e.g. `u-comment h-cite` patterns).
+
+Example: a *like* received via an `h-entry` with `u-like-of`:
+
+```python
+mention.to_dict()["metadata"]
+```
+
+```json
+{
+  "mf2": {
+    "type": ["h-entry"],
+    "url": "https://alice.example/posts/1",
+    "uid": null,
+    "category": [],
+    "syndication": ["https://social.example/alice/123"],
+    "rsvp": null,
+    "bookmark_of": [],
+    "like_of": ["https://example.com/posts/target"],
+    "repost_of": [],
+    "in_reply_to": [],
+    "follow_of": [],
+    "quotation_of": []
+  }
+}
+```
+
+Example: a Webmention containing a nested comment (`u-comment h-cite`):
+
+```json
+{
+  "mf2": {
+    "type": ["h-entry"],
+    "url": "https://jane.example/posts/reply-1",
+    "uid": null,
+    "category": [],
+    "syndication": [],
+    "rsvp": null,
+    "bookmark_of": [],
+    "like_of": [],
+    "repost_of": [],
+    "in_reply_to": ["https://example.com/posts/target"],
+    "follow_of": [],
+    "quotation_of": []
+  },
+  "comments": [
+    {
+      "type": ["h-cite"],
+      "name": null,
+      "url": "https://jane.example/comments/c12",
+      "published": "2026-02-07T01:02:03+00:00",
+      "content": "Nice post",
+      "author": {
+        "name": "Jane",
+        "url": "https://jane.example",
+        "photo": "https://jane.example/jane.jpg"
+      }
+    }
+  ]
+}
+```
+
 ## Tests
 
 ```bash

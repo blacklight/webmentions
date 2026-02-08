@@ -105,3 +105,34 @@ def test_build_invalid_iso_datetime_raises_value_error(field):
             },
             direction=WebmentionDirection.IN,
         )
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("incoming", WebmentionDirection.IN),
+        (" outgoing ", WebmentionDirection.OUT),
+        ("INCOMING", WebmentionDirection.IN),
+        ("OuTgOiNg", WebmentionDirection.OUT),
+    ],
+)
+def test_webmention_direction_from_raw_parses_value(raw, expected):
+    assert WebmentionDirection.from_raw(raw) is expected
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("IN", WebmentionDirection.IN),
+        (" out ", WebmentionDirection.OUT),
+        ("in", WebmentionDirection.IN),
+        ("OUT", WebmentionDirection.OUT),
+    ],
+)
+def test_webmention_direction_from_raw_parses_name(raw, expected):
+    assert WebmentionDirection.from_raw(raw) is expected
+
+
+def test_webmention_direction_from_raw_unknown_raises_value_error():
+    with pytest.raises(ValueError, match=r"Unknown direction"):
+        WebmentionDirection.from_raw("sideways")

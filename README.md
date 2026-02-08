@@ -339,24 +339,28 @@ pages.
 
 You may want to add your custom callbacks when a Webmention is sent or received -
 for example to send notifications to your users when some of their content is
-mentioned, or to keep track of the number of mentions sent by your pages.
+mentioned, or to keep track of the number of mentions sent by your pages, or to
+perform any automated moderation or filtering when mentions are processed etc.
 
 ```python
 from webmentions import WebmentionDirection, WebmentionsHandler
 
 
-def on_incoming_received(source: str, target: str):
-    print(f"Received Webmention from {source} to {target}")
-
-
-def on_outgoing_sent(source: str, target: str):
-    print(f"Sent Webmention from {source} to {target}")
-
-
-def on_webmention_deleted(
-    direction: WebmentionDirection,
+def on_mention_processed(
     source: str,
     target: str,
+    direction: WebmentionDirection,
+):
+    if direction == WebmentionDirection.INCOMING:
+        print(f"Processed incoming Webmention from {source} to {target}")
+    else:
+        print(f"Processed outgoing Webmention from {source} to {target}")
+
+
+def on_mention_deleted(
+    source: str,
+    target: str,
+    direction: WebmentionDirection,
 ):
     if direction == WebmentionDirection.INCOMING:
         print(f"Deleted incoming Webmention from {source} to {target}")
@@ -367,9 +371,8 @@ def on_webmention_deleted(
 handler = WebmentionsHandler(
     storage=init_db_storage(engine="sqlite:////tmp/webmentions.db"),
     base_url=base_url,
-    on_incoming_received=on_incoming_received,
-    on_outgoing_sent=on_outgoing_sent,
-    on_webmention_deleted=on_webmention_deleted,
+    on_mention_processed=on_mention_processed,
+    on_mention_deleted=on_mention_deleted,
 )
 ```
 

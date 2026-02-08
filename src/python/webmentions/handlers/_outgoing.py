@@ -31,18 +31,16 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         user_agent: str = DEFAULT_USER_AGENT,
         exclude_netlocs: set[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
-        on_outgoing_sent=None,
-        on_webmention_deleted=None,
-        on_mention_sent=None,
+        on_mention_processed=None,
+        on_mention_deleted=None,
         **_,
     ):
         self._storage = storage
         self._http_timeout = http_timeout
         self._user_agent = user_agent
         self._exclude_netlocs = exclude_netlocs or set()
-        self._on_outgoing_sent = on_outgoing_sent
-        self._on_webmention_deleted = on_webmention_deleted
-        self._on_mention_sent = on_mention_sent
+        self._on_mention_processed = on_mention_processed
+        self._on_mention_deleted = on_mention_deleted
 
     def process_outgoing_webmentions(
         self,
@@ -105,11 +103,10 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         try:
             self._notify_target(source_url, target_url)
             self._storage.mark_sent(source_url, target_url)
-            if self._on_outgoing_sent is not None:
-                self._on_outgoing_sent(source_url, target_url)
-
-            if self._on_mention_sent is not None:
-                self._on_mention_sent(source_url, target_url)
+            if self._on_mention_processed is not None:
+                self._on_mention_processed(
+                    source_url, target_url, WebmentionDirection.OUT
+                )
         except Exception as e:
             logger.info(
                 "Outgoing Webmention failed (source=%s target=%s): %s",
@@ -127,9 +124,8 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             self._storage.delete_webmention(
                 source_url, target_url, direction=WebmentionDirection.OUT
             )
-
-            if self._on_webmention_deleted is not None:
-                self._on_webmention_deleted(WebmentionDirection.OUT, source_url, target_url)
+            if self._on_mention_deleted is not None:
+                self._on_mention_deleted(source_url, target_url, WebmentionDirection.OUT)
         except Exception as e:
             logger.info(
                 "Outgoing Webmention deletion failed (source=%s target=%s): %s",

@@ -50,8 +50,6 @@ def bind_webmentions(
                     response.headers["link"] = existing
             return response
 
-        return _webmentions_link_header_middleware
-
     @app.post(route)
     def webmention(
         source: str | None = Form(default=None),

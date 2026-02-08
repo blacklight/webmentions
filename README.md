@@ -53,7 +53,7 @@ If you use a framework with officially supported bindings (FastAPI or Flask)
 then the `bind_webmentions` API is available to easily bind the Webmentions
 handler to your app, which provides:
 
-- A `POST /webmention` endpoint to receive Webmentions
+- A `POST /webmentions` endpoint to receive Webmentions
 - A `Link` header to advertise the Webmention endpoint on all the `text/*`
   responses
 
@@ -154,8 +154,8 @@ handler = WebmentionsHandler(
 
 
 # Route to receive Webmentions
-@app.post("/webmention")
-def webmention(
+@app.post("/webmentions")
+def webmentions(
     source: str | None = Form(default=None),
     target: str | None = Form(default=None),
 ):
@@ -173,7 +173,7 @@ def webmention(
 def serve_page(path: str):
     response = templates.TemplateResponse(path, {"request": request})
     # Add a Link header to advertise the Webmention endpoint
-    response.headers["Link"] = f'<{base_url}/webmention>; rel="webmention"'
+    response.headers["Link"] = f'<{base_url}/webmentions>; rel="webmention"'
     return response
 ```
 
@@ -459,7 +459,7 @@ in particular the [`h-card`](https://microformats.org/wiki/h-card) and
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Advertise the Webmention endpoint -->
-    <link rel="webmention" href="https://example.com/webmention" />
+    <link rel="webmention" href="https://example.com/webmentions" />
 
     <title>Example post</title>
   </head>

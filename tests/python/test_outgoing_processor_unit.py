@@ -82,7 +82,7 @@ def test_discover_endpoint_from_link_header(monkeypatch):
         assert url == "https://target.example/post"
         return _FakeResponse(
             url="https://target.example/post",
-            headers={"Link": '</webmention>; rel="webmention"'},
+            headers={"Link": '</webmentions>; rel="webmention"'},
             text="",
         )
 
@@ -90,7 +90,7 @@ def test_discover_endpoint_from_link_header(monkeypatch):
 
     assert (
         processor._discover_webmention_endpoint("https://target.example/post")
-        == "https://target.example/webmention"
+        == "https://target.example/webmentions"
     )
 
 

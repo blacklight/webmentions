@@ -16,7 +16,7 @@ from ._common import append_link_header, webmention_link_header_value
 
 
 def bind_webmentions(
-    app: FastAPI, handler: "WebmentionsHandler", route: str = "/webmention"
+    app: FastAPI, handler: "WebmentionsHandler", route: str = "/webmentions"
 ):
     """
     Bind a FastAPI endpoint to process incoming Webmentions.

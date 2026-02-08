@@ -24,24 +24,24 @@ class _Handler:
 
 
 def test_join_url_prefix():
-    assert _join_url_prefix(None, "/webmention") == "/webmention"
-    assert _join_url_prefix("", "/webmention") == "/webmention"
+    assert _join_url_prefix(None, "/webmentions") == "/webmentions"
+    assert _join_url_prefix("", "/webmentions") == "/webmentions"
 
-    assert _join_url_prefix("/api", "/webmention") == "/api/webmention"
-    assert _join_url_prefix("/api/", "/webmention") == "/api/webmention"
+    assert _join_url_prefix("/api", "/webmentions") == "/api/webmentions"
+    assert _join_url_prefix("/api/", "/webmentions") == "/api/webmentions"
 
-    assert _join_url_prefix("/api", "webmention") == "/api/webmention"
-    assert _join_url_prefix("/api/", "webmention") == "/api/webmention"
+    assert _join_url_prefix("/api", "webmentions") == "/api/webmentions"
+    assert _join_url_prefix("/api/", "webmentions") == "/api/webmentions"
 
 
 def test_bind_webmentions_processes_post_ok():
     handler = _Handler()
     app = Flask("test")
-    bind_webmentions(app, handler, route="/webmention")
+    bind_webmentions(app, handler, route="/webmentions")
 
     client = app.test_client()
     resp = client.post(
-        "/webmention",
+        "/webmentions",
         data={"source": "https://example.com/s", "target": "https://example.com/t"},
     )
 
@@ -54,10 +54,10 @@ def test_bind_webmentions_processes_post_error():
     exc = WebmentionException("s", "t", "bad")
     handler = _Handler(exc=exc)
     app = Flask("test")
-    bind_webmentions(app, handler, route="/webmention")
+    bind_webmentions(app, handler, route="/webmentions")
 
     client = app.test_client()
-    resp = client.post("/webmention", data={"source": "s", "target": "t"})
+    resp = client.post("/webmentions", data={"source": "s", "target": "t"})
 
     assert resp.status_code == 400
     body = resp.get_json()
@@ -67,7 +67,7 @@ def test_bind_webmentions_processes_post_error():
 
 def test_after_request_appends_webmention_link_header_for_text_responses():
     app = Flask("test")
-    bind_webmentions(app, _Handler(), route="/webmention")
+    bind_webmentions(app, _Handler(), route="/webmentions")
 
     @app.get("/page")
     def _page():
@@ -78,13 +78,13 @@ def test_after_request_appends_webmention_link_header_for_text_responses():
 
     link = resp.headers.get("Link")
     assert link is not None
-    assert "rel=\"webmention\"" in link
-    assert "</webmention>" in link
+    assert 'rel="webmention"' in link
+    assert "</webmentions>" in link
 
 
 def test_after_request_does_not_touch_non_text_responses():
     app = Flask("test")
-    bind_webmentions(app, _Handler(), route="/webmention")
+    bind_webmentions(app, _Handler(), route="/webmentions")
 
     @app.get("/data")
     def _data():
@@ -98,21 +98,25 @@ def test_after_request_does_not_touch_non_text_responses():
 
 def test_after_request_deduplicates_existing_link_header():
     app = Flask("test")
-    bind_webmentions(app, _Handler(), route="/webmention")
+    bind_webmentions(app, _Handler(), route="/webmentions")
 
     @app.get("/page")
     def _page():
-        return "hello", 200, {"Content-Type": "text/plain", "Link": "</webmention>; rel=\"webmention\""}
+        return (
+            "hello",
+            200,
+            {"Content-Type": "text/plain", "Link": '</webmentions>; rel="webmention"'},
+        )
 
     client = app.test_client()
     resp = client.get("/page")
 
-    assert resp.headers.get("Link") == "</webmention>; rel=\"webmention\""
+    assert resp.headers.get("Link") == '</webmentions>; rel="webmention"'
 
 
 def test_bind_webmentions_blueprint_respects_url_prefix_and_updates_extensions_and_headers():
     handler = _Handler()
-    bp = bind_webmentions_blueprint(handler, route="/webmention")
+    bp = bind_webmentions_blueprint(handler, route="/webmentions")
 
     app = Flask("test")
 
@@ -122,16 +126,16 @@ def test_bind_webmentions_blueprint_respects_url_prefix_and_updates_extensions_a
 
     app.register_blueprint(bp, url_prefix="/api")
 
-    assert "/api/webmention" in app.extensions.get("webmentions_endpoints", set())
+    assert "/api/webmentions" in app.extensions.get("webmentions_endpoints", set())
 
     client = app.test_client()
     resp = client.get("/page")
     link = resp.headers.get("Link")
     assert link is not None
-    assert "</api/webmention>" in link
+    assert "</api/webmentions>" in link
 
     resp2 = client.post(
-        "/api/webmention",
+        "/api/webmentions",
         data={"source": "https://example.com/s", "target": "https://example.com/t"},
     )
     assert resp2.status_code == 200

@@ -61,7 +61,7 @@ def webmention_route(handler: WebmentionsHandler):
 
 
 def bind_webmentions(
-    app: Flask, handler: "WebmentionsHandler", route: str = "/webmention"
+    app: Flask, handler: "WebmentionsHandler", route: str = "/webmentions"
 ):
     """
     Bind a Flask endpoint to process incoming Webmentions.
@@ -83,7 +83,7 @@ def bind_webmentions(
 
 
 def bind_webmentions_blueprint(
-    handler: "WebmentionsHandler", route: str = "/webmention"
+    handler: "WebmentionsHandler", route: str = "/webmentions"
 ) -> Blueprint:
     """
     Create a Flask Blueprint with a bound Webmentions endpoint.

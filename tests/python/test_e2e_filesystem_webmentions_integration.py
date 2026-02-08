@@ -221,8 +221,8 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 path.read_text(encoding="utf-8"), mimetype="text/html"
             )
 
-        bind_webmentions(app_a, handler_a, route="/webmention")
-        bind_webmentions(app_b, handler_b, route="/webmention")
+        bind_webmentions(app_a, handler_a, route="/webmentions")
+        bind_webmentions(app_b, handler_b, route="/webmentions")
 
         run_ctx_a = _run_flask_app(app_a, host, port_a)
         run_ctx_b = _run_flask_app(app_b, host, port_b)
@@ -257,8 +257,8 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 return HTMLResponse("not found", status_code=404)
             return HTMLResponse(path.read_text(encoding="utf-8"))
 
-        bind_webmentions(app_a, handler_a, route="/webmention")
-        bind_webmentions(app_b, handler_b, route="/webmention")
+        bind_webmentions(app_a, handler_a, route="/webmentions")
+        bind_webmentions(app_b, handler_b, route="/webmentions")
 
         run_ctx_a = _run_fastapi_app(app_a, host, port_a)
         run_ctx_b = _run_fastapi_app(app_b, host, port_b)

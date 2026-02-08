@@ -21,8 +21,11 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
 
     :param storage: Webmentions storage
     :param user_agent: User agent to use
-    :param exclude_netlocs: List of netlocs that should not be processed
     :param http_timeout: HTTP timeout
+    :param on_mention_processed: Callback to call when a Webmention is processed.
+        It should accept a :class:`webmentions.Webmention` object.
+    :param on_mention_deleted: Callback to call when a Webmention is deleted.
+        It should accept a :class:`webmentions.Webmention` object.
     """
 
     def __init__(
@@ -30,7 +33,6 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         storage: WebmentionsStorage,
         *,
         user_agent: str = DEFAULT_USER_AGENT,
-        exclude_netlocs: set[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         on_mention_processed=None,
         on_mention_deleted=None,
@@ -39,7 +41,6 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         self._storage = storage
         self._http_timeout = http_timeout
         self._user_agent = user_agent
-        self._exclude_netlocs = exclude_netlocs or set()
         self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)
         self._on_mention_deleted = on_mention_callback_wrapper(on_mention_deleted)
 
@@ -200,9 +201,7 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         return {
             u
             for u in cleaned
-            if urlparse(u).scheme in ("http", "https")
-            and urlparse(u).netloc
-            and urlparse(u).netloc not in self._exclude_netlocs
+            if urlparse(u).scheme in ("http", "https") and urlparse(u).netloc
         }
 
     def _notify_target(self, source_url: str, target_url: str) -> None:

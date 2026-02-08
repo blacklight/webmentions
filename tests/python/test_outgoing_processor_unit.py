@@ -74,27 +74,6 @@ class _SyncExecutor:
         return None
 
 
-def test_extract_targets_from_markdown_text_cleans_and_filters_and_excludes_netloc():
-    storage = _FakeStorage()
-    processor = OutgoingWebmentionsProcessor(
-        storage, exclude_netlocs={"exclude.example"}
-    )
-
-    md = (
-        "A [link](https://example.com/a), and <https://example.com/b>. "
-        "Also https://example.com/c). "
-        "And https://exclude.example/d and mailto:foo@example.com"
-    )
-
-    targets = processor._extract_targets(md, ContentTextFormat.MARKDOWN)
-
-    assert targets == {
-        "https://example.com/a",
-        "https://example.com/b",
-        "https://example.com/c",
-    }
-
-
 def test_discover_endpoint_from_link_header(monkeypatch):
     storage = _FakeStorage()
     processor = OutgoingWebmentionsProcessor(storage)

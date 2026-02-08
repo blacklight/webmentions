@@ -107,6 +107,33 @@ def _assert_in_mentions(storage, *, target_url: str, expected_sources: set[str])
     return mentions
 
 
+def _get_webmentions_json(
+    *, base_url: str, resource: str, direction: WebmentionDirection
+) -> list[dict]:
+    resp = requests.get(
+        f"{base_url}/webmentions",
+        params={"resource": resource, "direction": direction.value},
+        timeout=2,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
+    return data
+
+
+def _assert_get_mentions(
+    *, base_url: str, target_url: str, expected_sources: set[str]
+) -> list[dict]:
+    mentions = _get_webmentions_json(
+        base_url=base_url, resource=target_url, direction=WebmentionDirection.IN
+    )
+    assert {m.get("source") for m in mentions} == expected_sources
+    for m in mentions:
+        assert m.get("target") == target_url
+        assert m.get("direction") == WebmentionDirection.IN.value
+    return mentions
+
+
 def _wait_for_received(
     q: "queue.Queue[Webmention]",
     *,
@@ -276,6 +303,9 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
         time.sleep(0.05)
         try:
             _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
+            _assert_get_mentions(
+                base_url=base_b, target_url=target_url, expected_sources=set()
+            )
 
             # 1) Add mention
             _write(
@@ -300,6 +330,22 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
             _assert_in_mentions(
                 db_b, target_url=target_url, expected_sources={source_url}
             )
+
+            _wait_for(
+                lambda: {
+                    m.get("source")
+                    for m in _get_webmentions_json(
+                        base_url=base_b,
+                        resource=target_url,
+                        direction=WebmentionDirection.IN,
+                    )
+                }
+                == {source_url}
+            )
+            mentions_json = _assert_get_mentions(
+                base_url=base_b, target_url=target_url, expected_sources={source_url}
+            )
+            assert mentions_json and (mentions_json[0].get("title") == "Source v1")
 
             # 2) Update resource (should update stored fields)
             _write(
@@ -327,6 +373,17 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
             )
             assert mentions and (mentions[0].title == "Source v2")
 
+            _wait_for(
+                lambda: (
+                    _assert_get_mentions(
+                        base_url=base_b,
+                        target_url=target_url,
+                        expected_sources={source_url},
+                    )[0].get("title")
+                    == "Source v2"
+                )
+            )
+
             # 3) Remove mention from resource
             _write(
                 source_file,
@@ -340,6 +397,14 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 timeout=8,
             )
             _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
+            _wait_for(
+                lambda: (
+                    _assert_get_mentions(
+                        base_url=base_b, target_url=target_url, expected_sources=set()
+                    )
+                    == []
+                )
+            )
 
             # 4) Add mention again
             _write(
@@ -359,6 +424,18 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 db_b, target_url=target_url, expected_sources={source_url}
             )
 
+            _wait_for(
+                lambda: {
+                    m.get("source")
+                    for m in _get_webmentions_json(
+                        base_url=base_b,
+                        resource=target_url,
+                        direction=WebmentionDirection.IN,
+                    )
+                }
+                == {source_url}
+            )
+
             # 5) Remove the resource entirely
             _delete(source_file)
             _wait_for_received(
@@ -369,6 +446,14 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 timeout=8,
             )
             _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
+            _wait_for(
+                lambda: (
+                    _assert_get_mentions(
+                        base_url=base_b, target_url=target_url, expected_sources=set()
+                    )
+                    == []
+                )
+            )
         finally:
             fs_a.stop_watcher()
             fs_b.stop_watcher()

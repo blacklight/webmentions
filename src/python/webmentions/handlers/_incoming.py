@@ -5,6 +5,7 @@ from typing import Any
 from ..storage import WebmentionsStorage
 from .._exceptions import WebmentionException, WebmentionGone
 from .._model import Webmention, WebmentionDirection
+from ._common import on_mention_callback_wrapper
 from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
 from ._parser import WebmentionsRequestParser
 
@@ -31,8 +32,8 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             base_url=base_url, http_timeout=http_timeout, user_agent=user_agent
         )
         self._storage = storage
-        self._on_mention_processed = on_mention_processed
-        self._on_mention_deleted = on_mention_deleted
+        self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)
+        self._on_mention_deleted = on_mention_callback_wrapper(on_mention_deleted)
 
     def process_incoming_webmention(
         self, source: str | None, target: str | None
@@ -54,10 +55,11 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
                 source, target, direction=WebmentionDirection.IN
             )
 
-            if self._on_mention_deleted is not None:
-                self._on_mention_deleted(
-                    Webmention(source=source, target=target, direction=WebmentionDirection.IN)
+            self._on_mention_deleted(
+                Webmention(
+                    source=source, target=target, direction=WebmentionDirection.IN
                 )
+            )
 
             logger.info("Deleted Webmention from '%s' to '%s'", source, target)
             return None
@@ -68,7 +70,6 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         mention.created_at = mention.created_at or mention.published or now
         mention.updated_at = mention.updated_at or now
         ret = self._storage.store_webmention(mention)
-        if self._on_mention_processed is not None:
-            self._on_mention_processed(mention)
+        self._on_mention_processed(mention)
         logger.info("Processed Webmention from '%s' to '%s'", source, target)
         return ret

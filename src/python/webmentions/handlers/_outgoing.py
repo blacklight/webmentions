@@ -9,6 +9,7 @@ import requests
 
 from ..storage import WebmentionsStorage
 from .._model import ContentTextFormat, Webmention, WebmentionDirection
+from ._common import on_mention_callback_wrapper
 from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
 
 logger = logging.getLogger(__name__)
@@ -39,8 +40,8 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         self._http_timeout = http_timeout
         self._user_agent = user_agent
         self._exclude_netlocs = exclude_netlocs or set()
-        self._on_mention_processed = on_mention_processed
-        self._on_mention_deleted = on_mention_deleted
+        self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)
+        self._on_mention_deleted = on_mention_callback_wrapper(on_mention_deleted)
 
     def process_outgoing_webmentions(
         self,
@@ -103,14 +104,13 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         try:
             self._notify_target(source_url, target_url)
             self._storage.mark_sent(source_url, target_url)
-            if self._on_mention_processed is not None:
-                self._on_mention_processed(
-                    Webmention(
-                        source=source_url,
-                        target=target_url,
-                        direction=WebmentionDirection.OUT,
-                    )
+            self._on_mention_processed(
+                Webmention(
+                    source=source_url,
+                    target=target_url,
+                    direction=WebmentionDirection.OUT,
                 )
+            )
         except Exception as e:
             logger.info(
                 "Outgoing Webmention failed (source=%s target=%s): %s",
@@ -128,14 +128,14 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             self._storage.delete_webmention(
                 source_url, target_url, direction=WebmentionDirection.OUT
             )
-            if self._on_mention_deleted is not None:
-                self._on_mention_deleted(
-                    Webmention(
-                        source=source_url,
-                        target=target_url,
-                        direction=WebmentionDirection.OUT,
-                    )
+
+            self._on_mention_deleted(
+                Webmention(
+                    source=source_url,
+                    target=target_url,
+                    direction=WebmentionDirection.OUT,
                 )
+            )
         except Exception as e:
             logger.info(
                 "Outgoing Webmention deletion failed (source=%s target=%s): %s",

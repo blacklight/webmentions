@@ -264,6 +264,8 @@ pip install "webmentions[file]"
 Then add the following code to your app (FastAPI example):
 
 ```python
+import os
+
 from webmentions import WebmentionsHandler
 from webmentions.storage.adapters.db import init_db_storage
 from webmentions.storage.adapters.file import FileSystemMonitor
@@ -285,27 +287,22 @@ def path_to_url(path: str) -> str:
     # and drop the extension.
     # For example, /srv/http/articles/2022/01/01/article.md
     # becomes /2022/01/01/article
-    path = path[len(static_dir) + 1 :].rsplit(".", 1)[0].lstrip("/")
+    path = os.path.relpath(path, static_dir).rsplit(".", 1)[0].lstrip("/")
     # Convert the path to a URL on the Web server
     # For example, /2022/01/01/article
     # becomes https://example.com/articles/2022/01/01/article
     return f"{base_url.rstrip('/')}/articles/{path}"
 
 
-# Create the filesystem monitor
-monitor = FileSystemMonitor(
+# Create and start the filesystem monitor before running your app
+with FileSystemMonitor(
     # This should match the base path of your static files
     root_dir=static_dir,
     handler=handler,
     file_to_url_mapper=path_to_url,
-)
-
-# Start the monitor before running your app
-monitor.start()
-app.run(...)
-
-# Stop the monitor when your app is stopped
-monitor.stop()
+) as monitor:
+  # Start the monitor before running your app
+  app.run(...)
 ```
 
 Now every time a `text/*` file is created, modified or deleted (supported:

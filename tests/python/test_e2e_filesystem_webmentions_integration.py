@@ -298,8 +298,8 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
             lambda: requests.get(f"{base_b}/health", timeout=0.5).status_code == 200
         )
 
-        fs_a.start_watcher()
-        fs_b.start_watcher()
+        fs_a.start()
+        fs_b.start()
         time.sleep(0.05)
         try:
             _assert_in_mentions(db_b, target_url=target_url, expected_sources=set())
@@ -455,5 +455,5 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
                 )
             )
         finally:
-            fs_a.stop_watcher()
-            fs_b.stop_watcher()
+            fs_a.stop()
+            fs_b.stop()

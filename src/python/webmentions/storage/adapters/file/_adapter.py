@@ -80,7 +80,7 @@ class FileSystemMonitor:
             time.monotonic() - t_start,
         )
 
-    def start_watcher(self) -> None:
+    def start(self) -> None:
         """
         Starts the filesystem watcher.
         """
@@ -97,7 +97,7 @@ class FileSystemMonitor:
 
             self._watcher.start()
 
-    def stop_watcher(self) -> None:
+    def stop(self) -> None:
         """
         Stops the filesystem watcher.
         """
@@ -107,3 +107,16 @@ class FileSystemMonitor:
 
             self._watcher.stop()
             self._watcher = None
+
+    def __enter__(self):
+        """
+        Starts the filesystem watcher.
+        """
+        self.start()
+        return self
+
+    def __exit__(self, *_, **__):
+        """
+        Stops the filesystem watcher.
+        """
+        self.stop()

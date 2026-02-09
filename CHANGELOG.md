@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fix behaviour of `DbWebmentionsStorage.retrieve_webmentions` - it should only
+  include records having `status=WebmentionStatus.CONFIRMED`.
+
 ## 0.1.6
 
 ### Changed
@@ -89,7 +96,7 @@
 ### Added
 
 - SQLAlchemy-backed storage layer via generic `DbWebmentionsStorage` plus helpers
-- End-to-end integration tests for `DbWebmentionStorage`
+- End-to-end integration tests for `DbWebmentionsStorage`
 - Server adapters for FastAPI and Flask
 - Generic key-value metadata field on the `Webmention` model
 

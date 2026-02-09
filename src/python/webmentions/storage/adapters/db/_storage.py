@@ -5,6 +5,7 @@ from typing import Callable
 import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from webmentions._model import WebmentionStatus
 
 from ..._base import (
     Webmention,
@@ -120,6 +121,7 @@ class DbWebmentionsStorage(WebmentionsStorage):
                     sa.and_(
                         resource_column == resource,
                         self.model.direction == direction,
+                        self.model.status == WebmentionStatus.CONFIRMED,
                     )
                 )
             ]

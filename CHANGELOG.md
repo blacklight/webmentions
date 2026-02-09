@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.6
 
 ### Changed
 - **File monitor:** A more consistent start/stop API, plus a context manager.

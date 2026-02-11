@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added example Jinja template for rendering Webmentions and an example
+  semantic-compliant microformats2 HTML page.
+
 ## 0.1.7
 
 ### Fixed

@@ -1,0 +1,90 @@
+<!--
+  This is an example of a semantic template that can be used to trigger a rich Webmention.
+
+  For more details:
+    - https://indieweb.org/microformats2
+    - https://indieweb.org/h-entry
+    - https://indieweb.org/h-card
+-->
+
+<!-- Wrap the semantic element in a h-entry -->
+<article class="h-entry">
+  <!-- Use p-name for the title -->
+  <h1 class="p-name">Reply: Great post</h1>
+
+  <!-- Use h-card for the author -->
+  <a class="p-author h-card" href="https://me.example.com">
+    <!-- Use u-photo for the avatar -->
+    <img class="u-photo" src="https://me.example.com/avatar.jpg" alt="Author avatar" />
+    <!-- Use p-name and p-url for the name and URL -->
+    <span class="p-name">John Doe</span>
+    <span class="p-url">https://me.example.com</span>
+  </a>
+
+  <!-- Use dt-published for the date -->
+  <time class="dt-published" datetime="2026-01-24T21:15:00+01:00">
+    2026-01-24
+  </time>
+
+  <!-- Use p-summary for the excerpt. This will usually be rendered by the
+       Webmention handler as the content of the Webmention on the target. -->
+  <p class="p-summary">Short summary used as excerpt.</p>
+
+  <!-- Use e-content for the full content -->
+  <div class="e-content">
+    <p>This is the full reply content.</p>
+    <p>
+      In reply to:
+      <!-- The actual link to the original post should be included in the content, so that it can be extracted by the
+           Webmention handler. -->
+      <a href="https://alice.blog/some-cool-article">this article</a>
+    </p>
+  </div>
+
+  <!-- Media: inline image -->
+  <img class="u-photo" src="https://cdn.example.com/image.jpg" alt="An inline image" />
+
+  <!-- Media: inline video -->
+  <a class="u-video" href="https://cdn.example.com/video.mp4">Video</a>
+
+  <!-- Media: inline audio -->
+  <a class="u-audio" href="https://cdn.example.com/audio.mp3">Audio</a>
+
+  <!-- Everything below this line is optional. It implements the current microformats2 spec recommendations. -->
+
+  <!-- Interaction properties -->
+  <a class="u-in-reply-to" href="https://bob.blog/another-cool-article">In reply to</a>
+  <a class="u-like-of" href="https://bob.blog/another-cool-article">A liked URL</a>
+  <a class="u-repost-of" href="https://alice.blog/some-cool-article">A reposted URL</a>
+  <a class="u-bookmark-of" href="https://alice.blog/some-cool-article">A bookmarked URL</a>
+  <a class="u-follow-of" href="https://alice.social/@alice">A followed URL</a>
+  <a class="u-quotation-of" href="https://alice.blog/some-cool-article">A quoted URL</a>
+
+  <!-- RSVP -->
+  <data class="p-rsvp" value="yes">yes</data>
+
+  <!-- Categories (tags) -->
+  <span class="p-category">indieweb</span>
+  <span class="p-category">webmention</span>
+  <span class="p-category">test</span>
+
+  <!-- Syndication links -->
+  <a class="u-syndication" href="https://example.social/@john/123456789">Syndicated version</a>
+
+  <!-- Location -->
+  <p class="h-card">
+    Location
+
+    <p class="h-adr">
+      <span class="p-street-address">Broadway, 12</span>
+      <span class="p-locality">New York</span>
+      <span class="p-region">NY</span>
+      <span class="p-postal-code">10001</span>
+      <span class="p-country-name">USA</span>
+      <span class="p-latitude">40.7128</span>
+      <span class="p-longitude">-74.0060</span>
+      <span class="p-altitude">5</span>
+      <span class="p-label">Home</span>
+    </p>
+  </p>
+</article>

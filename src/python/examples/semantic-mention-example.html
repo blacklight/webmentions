@@ -13,12 +13,12 @@
   <h1 class="p-name">Reply: Great post</h1>
 
   <!-- Use h-card for the author -->
-  <a class="p-author h-card" href="https://fabiomanganiello.com">
+  <a class="p-author h-card" href="https://me.example.com">
     <!-- Use u-photo for the avatar -->
-    <img class="u-photo" src="https://static.manganiello.eu/manganiello-social-media/e793b081ae62b526111b68aa58716cfb1933e61978454ebcb43cf797ee1c30aa.png" alt="" />
+    <img class="u-photo" src="https://me.example.com/avatar.jpg" alt="Author avatar" />
     <!-- Use p-name and p-url for the name and URL -->
-    <span class="p-name">Fabio Manganiello</span>
-    <span class="p-url">https://fabiomanganiello.com</span>
+    <span class="p-name">John Doe</span>
+    <span class="p-url">https://me.example.com</span>
   </a>
 
   <!-- Use dt-published for the date -->
@@ -35,17 +35,30 @@
     <p>This is the full reply content.</p>
     <p>
       In reply to:
-      <a href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">the post</a>
+      <!-- The actual link to the original post should be included in the content, so that it can be extracted by the
+           Webmention handler. -->
+      <a href="https://alice.blog/some-cool-article">this article</a>
     </p>
   </div>
 
+  <!-- Media: inline image -->
+  <img class="u-photo" src="https://cdn.example.com/image.jpg" alt="An inline image" />
+
+  <!-- Media: inline video -->
+  <a class="u-video" href="https://cdn.example.com/video.mp4">Video</a>
+
+  <!-- Media: inline audio -->
+  <a class="u-audio" href="https://cdn.example.com/audio.mp3">Audio</a>
+
+  <!-- Everything below this line is optional. It implements the current microformats2 spec recommendations. -->
+
   <!-- Interaction properties -->
-  <a class="u-in-reply-to" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">Original post</a>
-  <a class="u-like-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A liked URL</a>
-  <a class="u-repost-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A reposted URL</a>
-  <a class="u-bookmark-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A bookmarked URL</a>
-  <a class="u-follow-of" href="https://manganiello.eu/users/fabio">Followed profile</a>
-  <a class="u-quotation-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A quoted URL</a>
+  <a class="u-in-reply-to" href="https://bob.blog/another-cool-article">In reply to</a>
+  <a class="u-like-of" href="https://bob.blog/another-cool-article">A liked URL</a>
+  <a class="u-repost-of" href="https://alice.blog/some-cool-article">A reposted URL</a>
+  <a class="u-bookmark-of" href="https://alice.blog/some-cool-article">A bookmarked URL</a>
+  <a class="u-follow-of" href="https://alice.social/@alice">A followed URL</a>
+  <a class="u-quotation-of" href="https://alice.blog/some-cool-article">A quoted URL</a>
 
   <!-- RSVP -->
   <data class="p-rsvp" value="yes">yes</data>
@@ -56,7 +69,7 @@
   <span class="p-category">test</span>
 
   <!-- Syndication links -->
-  <a class="u-syndication" href="https://manganiello.eu/users/fabio/123">Mastodon</a>
+  <a class="u-syndication" href="https://example.social/@john/123456789">Syndicated version</a>
 
   <!-- Location -->
   <p class="h-card">
@@ -74,13 +87,4 @@
       <span class="p-label">Home</span>
     </p>
   </p>
-
-  <!-- Media: image -->
-  <img class="u-photo" src="https://cdn.masto.host/graphicssocial/media_attachments/files/116/046/874/614/351/993/original/4c06c8f8713ee78a.png" alt="" />
-
-  <!-- Media: video -->
-  <a class="u-video" href="https://static.manganiello.eu/manganiello-social-media/4b04df9557c333225425fba82d6ac2f7c1b51c4338276e50af03e737db1d1a0f.mp4">Video clip</a>
-
-  <!-- Media: audio -->
-  <a class="u-audio" href="https://s3.fabiomanganiello.com/fabio/music/Watch%20Over%20You.flac">Audio track</a>
 </article>

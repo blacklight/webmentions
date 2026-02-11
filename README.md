@@ -531,9 +531,28 @@ in particular the [`h-card`](https://microformats.org/wiki/h-card) and
 </html>
 ```
 
+A more detailed (but not exhaustive, as the Microformats2 specification is quite flexible) example of a page that
+works well with Webmentions is available under
+[semantic-mention-example.html](./src/python/examples/semantic-mention-example.html).
+
 If you render your pages following these specifications then any mention on
 target URLs that support Webmention will automatically include rich information
 such as author details, media elements, likes/reposts, location, etc.
+
+## Rendering Webmentions
+
+You can retrieve Webmentions for a given URL either by:
+
+- Directly calling `WebmentionsHandler.retrieve_webmentions(resource, direction)` to get a list of
+  `Webmention` objects (for example `handler.retrieve_webmentions("https://example.com/posts/example-post",
+  WebmentionDirection.IN)` will return all the incoming Webmentions for the provided URL).
+
+- If you registered a `GET /webmentions` endpoint (either through `bind_webmentions` or by implementing it yourself),
+  you can call that endpoint with the `resource` and `direction` parameters to get a JSON response with the
+  Webmentions for that URL.
+
+An [example Jinja template](./src/python/examples/mention-render-jinja-example.html) is available to show how to render
+Webmentions in your pages.
 
 ## Microformats support
 

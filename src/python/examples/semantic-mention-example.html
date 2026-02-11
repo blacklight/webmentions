@@ -1,0 +1,86 @@
+<!--
+  This is an example of a semantic template that can be used to trigger a rich Webmention.
+
+  For more details:
+    - https://indieweb.org/microformats2
+    - https://indieweb.org/h-entry
+    - https://indieweb.org/h-card
+-->
+
+<!-- Wrap the semantic element in a h-entry -->
+<article class="h-entry">
+  <!-- Use p-name for the title -->
+  <h1 class="p-name">Reply: Great post</h1>
+
+  <!-- Use h-card for the author -->
+  <a class="p-author h-card" href="https://fabiomanganiello.com">
+    <!-- Use u-photo for the avatar -->
+    <img class="u-photo" src="https://static.manganiello.eu/manganiello-social-media/e793b081ae62b526111b68aa58716cfb1933e61978454ebcb43cf797ee1c30aa.png" alt="" />
+    <!-- Use p-name and p-url for the name and URL -->
+    <span class="p-name">Fabio Manganiello</span>
+    <span class="p-url">https://fabiomanganiello.com</span>
+  </a>
+
+  <!-- Use dt-published for the date -->
+  <time class="dt-published" datetime="2026-01-24T21:15:00+01:00">
+    2026-01-24
+  </time>
+
+  <!-- Use p-summary for the excerpt. This will usually be rendered by the
+       Webmention handler as the content of the Webmention on the target. -->
+  <p class="p-summary">Short summary used as excerpt.</p>
+
+  <!-- Use e-content for the full content -->
+  <div class="e-content">
+    <p>This is the full reply content.</p>
+    <p>
+      In reply to:
+      <a href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">the post</a>
+    </p>
+  </div>
+
+  <!-- Interaction properties -->
+  <a class="u-in-reply-to" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">Original post</a>
+  <a class="u-like-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A liked URL</a>
+  <a class="u-repost-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A reposted URL</a>
+  <a class="u-bookmark-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A bookmarked URL</a>
+  <a class="u-follow-of" href="https://manganiello.eu/users/fabio">Followed profile</a>
+  <a class="u-quotation-of" href="https://blog.platypush.tech/article/Self-host-your-music-experience-on-mobile">A quoted URL</a>
+
+  <!-- RSVP -->
+  <data class="p-rsvp" value="yes">yes</data>
+
+  <!-- Categories (tags) -->
+  <span class="p-category">indieweb</span>
+  <span class="p-category">webmention</span>
+  <span class="p-category">test</span>
+
+  <!-- Syndication links -->
+  <a class="u-syndication" href="https://manganiello.eu/users/fabio/123">Mastodon</a>
+
+  <!-- Location -->
+  <p class="h-card">
+    Location
+
+    <p class="h-adr">
+      <span class="p-street-address">Broadway, 12</span>
+      <span class="p-locality">New York</span>
+      <span class="p-region">NY</span>
+      <span class="p-postal-code">10001</span>
+      <span class="p-country-name">USA</span>
+      <span class="p-latitude">40.7128</span>
+      <span class="p-longitude">-74.0060</span>
+      <span class="p-altitude">5</span>
+      <span class="p-label">Home</span>
+    </p>
+  </p>
+
+  <!-- Media: image -->
+  <img class="u-photo" src="https://cdn.masto.host/graphicssocial/media_attachments/files/116/046/874/614/351/993/original/4c06c8f8713ee78a.png" alt="" />
+
+  <!-- Media: video -->
+  <a class="u-video" href="https://static.manganiello.eu/manganiello-social-media/4b04df9557c333225425fba82d6ac2f7c1b51c4338276e50af03e737db1d1a0f.mp4">Video clip</a>
+
+  <!-- Media: audio -->
+  <a class="u-audio" href="https://s3.fabiomanganiello.com/fabio/music/Watch%20Over%20You.flac">Audio track</a>
+</article>

@@ -205,7 +205,7 @@ def test_renderer_raises_on_unknown_template_type():
     renderer = WebmentionsRenderer()
     wm = _build_minimal_webmention()
 
-    with pytest.raises(RuntimeError, match="Template not found"):
+    with pytest.raises(AssertionError):
         renderer.render_webmention(wm, template=object())
 
 

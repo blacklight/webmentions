@@ -310,6 +310,10 @@ text, Markdown and HTML), or you run a `git pull` to update your static files,
 Webmentions for updated resources will be automatically sent to any Web server
 in the mentioned links that supports Webmentions.
 
+You can also pass a `throttle_seconds` parameter to `FileSystemMonitor` to
+limit the rate at which Webmentions are processed upon file updates (default:
+10 seconds).
+
 #### Generic setup
 
 If you don't store your articles or posts as static files (e.g. a database),
@@ -357,7 +361,7 @@ Once `process_outgoing_webmentions` is hooked to your content modifications,
 your Webmentions will be automatically sent whenever there are updates to your
 pages.
 
-## Add notifications to mentions
+## Add custom handlers to mentions
 
 You may want to add your custom callbacks when a Webmention is sent or received -
 for example to send notifications to your users when some of their content is
@@ -551,8 +555,82 @@ You can retrieve Webmentions for a given URL either by:
   you can call that endpoint with the `resource` and `direction` parameters to get a JSON response with the
   Webmentions for that URL.
 
-An [example Jinja template](./src/python/examples/mention-render-jinja-example.html) is available to show how to render
-Webmentions in your pages.
+The library provides a
+[`WebmentionsHandler.render_webmentions()`](https://docs.webmentions.work/api/webmentions.handlers.html#webmentions.handlers.WebmentionsHandler.render_webmentions)
+helper that automatically converts the Webmentions into a safe collection of
+`Markup` elements that you can import and render into your page. The default
+template should probably suffice for most of the cases.
+
+Minimal example (using FastAPI and Jinja2):
+
+```python
+from fastapi import FastAPI
+from fastapi.templating import Jinja2Templates
+from webmentions import WebmentionsHandler
+from webmentions.server.adapters.fastapi import bind_webmentions
+
+base_url = "https://example.com"
+app = FastAPI()
+handler = WebmentionsHandler(...)
+bind_webmentions(app, handler)
+
+# ...
+
+@app.get("/articles/{article_id}")
+def article(request, article_id: int):
+    templates = Jinja2Templates(directory="templates")
+    mentions = handler.retrieve_webmentions(
+      f"{base_url}/articles/{article_id}",
+      WebmentionDirection.IN,
+    )
+
+    rendered_mentions = handler.render_webmentions(mentions)
+    return templates.TemplateResponse(
+      "article.html",
+      {
+        "request": request,
+        "article_id": article_id,
+        "mentions": rendered_mentions,
+      },
+    )
+```
+
+Then your `article.html` template should look something like this:
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <title>Example article</title>
+  </head>
+  <body>
+    <main>
+      <article class="h-entry">
+        <h1 class="p-name">Example article</h1>
+        <time class="dt-published" datetime="2026-02-07T21:03:00+01:00">
+          Feb 7, 2026
+        </time>
+        <div class="e-content">
+          <p>Your article content goes here.</p>
+        </div>
+      </article>
+
+      <section id="mentions">
+        <h2>{{ mentions|length }} reactions</h2>
+        <hr>
+
+        {% for html in mentions %}
+          {{ html }}
+        {% endfor %}
+      </section>
+    </div>
+  </body>
+</html>
+```
+
+An [example and self-documented Jinja
+template](./src/python/examples/mention-render-jinja-example.html) is also
+available if you want to customize the rendering of Webmentions in your pages.
 
 ## Microformats support
 

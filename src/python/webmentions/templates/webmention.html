@@ -1,0 +1,233 @@
+<div class="mention">
+  {% set safe_source = safe_url(mention.source) %}
+  {% set safe_author_url = safe_url(mention.author_url) %}
+  {% set safe_author_photo = safe_url(mention.author_photo) %}
+  {% if mention.title and mention.source %}
+    <div class="mention-author">
+      {% if safe_author_photo %}
+        <img class="mention-author-photo" src="{{ safe_author_photo }}" alt="" loading="lazy" />
+      {% endif %}
+
+      {% if mention.author_name or mention.author_url %}
+        {% if safe_author_url %}
+          <a class="mention-author-name" href="{{ safe_author_url }}">{{ mention.author_name or hostname(safe_author_url) }}</a>
+        {% else %}
+          <span class="mention-author-name">{{ mention.author_name }}</span>
+        {% endif %}
+        {% if safe_source %}
+          <a href="{{ safe_source }}" class="mention-domain" target="_blank">{{ hostname(safe_source) }}</a>
+        {% endif %}
+      {% else %}
+        <span class="mention-author-name">{{ hostname(safe_source) }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="mention-header">
+    <h3 class="mention-title">
+      {% if safe_source %}
+        <a class="mention-source" href="{{ safe_source }}">
+          {{ mention.title or hostname(safe_source) }}
+        </a>
+      {% else %}
+        <span class="mention-source">
+          {{ mention.title or hostname(safe_source) }}
+        </span>
+      {% endif %}
+    </h3>
+  </div>
+
+  <div class="dates">
+    <p class="mention-date created">
+      &#128338;&nbsp;
+      <span class="date">{{ format_datetime(mention.published or mention.created_at) }}</span>
+        {% if mention.updated_at and mention.updated_at != mention.created_at %}
+          <span class="updated" title="Updated at {{ format_datetime(mention.updated_at) }}">
+          &nbsp;&#9998;
+        {% endif %}
+      </span>
+    </p>
+  </div>
+
+  {% if mention.excerpt or mention.content %}
+    <div class="mention-body">
+      <p class="mention-excerpt">{{ mention.excerpt or mention.content }}</p>
+    </div>
+  {% endif %}
+
+  {% if mention.metadata %}
+    {% set metadata = fromjson(mention.metadata) %}
+    {% set mf2 = fromjson(metadata.get("mf2") if metadata is mapping else None) %}
+    {% if mf2 %}
+      <div class="mention-mf2">
+        {% if mf2 is mapping %}
+          {% set in_reply_to = mf2.get("in_reply_to") or [] %}
+          {% set like_of = mf2.get("like_of") or [] %}
+          {% set repost_of = mf2.get("repost_of") or [] %}
+          {% set bookmark_of = mf2.get("bookmark_of") or [] %}
+          {% set follow_of = mf2.get("follow_of") or [] %}
+          {% set quotation_of = mf2.get("quotation_of") or [] %}
+          {% set rsvp = mf2.get("rsvp") %}
+          {% set category = mf2.get("category") or [] %}
+          {% set syndication = mf2.get("syndication") or [] %}
+          {% set photo = mf2.get("photo") or mf2.get("photo_url") or [] %}
+          {% set video = mf2.get("video") or mf2.get("video_url") or [] %}
+          {% set audio = mf2.get("audio") or mf2.get("audio_url") or [] %}
+          {% set location = mf2.get("location") %}
+
+          {% if in_reply_to %}
+            <div class="mention-mf2-field mention-mf2-reply" title="In reply to">
+              <span class="mention-meta-label">&#128172;&nbsp;</span>
+              {% for url in in_reply_to %}
+                {% set rurl = safe_url(url) %}
+                {% if rurl %}
+                  <a href="{{ rurl }}" target="_blank">{{ hostname(rurl) or rurl }}</a>{% if not loop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if like_of %}
+            <div class="mention-mf2-field mention-mf2-like" title="Likes">
+              <span class="mention-meta-label">&#128077;&nbsp;</span>
+              {% for url in like_of %}
+                {% set lurl = safe_url(url) %}
+                {% if lurl %}
+                  <a href="{{ lurl }}" target="_blank">{{ hostname(lurl) or lurl }}</a>{% if not loop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if repost_of %}
+            <div class="mention-mf2-field mention-mf2-repost" title="Reposts">
+              <span class="mention-meta-label">&#8635;&nbsp;</span>
+              {% for url in repost_of %}
+                {% set rpurl = safe_url(url) %}
+                {% if rpurl %}
+                  <a href="{{ rpurl }}" target="_blank">{{ hostname(rpurl) or rpurl }}</a>{% if not loop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if bookmark_of %}
+            <div class="mention-mf2-field mention-mf2-bookmark" title="Bookmarks">
+              <span class="mention-meta-label">&#128279;&nbsp;</span>
+              {% for url in bookmark_of %}
+                {% set bmurl = safe_url(url) %}
+                {% if bmurl %}
+                  <a href="{{ bmurl }}" target="_blank">{{ hostname(bmurl) or bmurl }}</a>{% if not loop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if follow_of %}
+            <div class="mention-mf2-field mention-mf2-follow" title="Follows">
+              <span class="mention-meta-label">&#128075;&nbsp;</span>
+              {% for url in follow_of %}
+                {% set furl = safe_url(url) %}
+                {% if furl %}
+                  <a href="{{ furl }}" target="_blank">{{ hostname(furl) or furl }}</a>{% if not loop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if quotation_of %}
+            <div class="mention-mf2-field mention-mf2-quote" title="Quotes">
+              <span class="mention-meta-label">&#128173;&nbsp;</span>
+              {% for url in quotation_of %}
+                {% set qurl = safe_url(url) %}
+                {% if qurl %}
+                  <a href="{{ qurl }}" target="_blank">{{ hostname(qurl) or qurl }}</a>{% if not loop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if rsvp %}
+            <div class="mention-mf2-field mention-mf2-rsvp" title="RSVP">
+              <span class="mention-meta-label">&#128197;&nbsp;</span>
+              <span class="mention-mf2-value">{{ rsvp }}</span>
+            </div>
+          {% endif %}
+
+          {% if location %}
+            <div class="mention-mf2-field mention-mf2-location" title="Location">
+              <span class="mention-meta-label">&#128197;&nbsp;</span>
+              <span class="mention-mf2-value">{{ location }}</span>
+            </div>
+          {% endif %}
+
+          {% if category %}
+            <div class="mention-mf2-field mention-mf2-category" title="Categories">
+              <span class="mention-meta-label">&#128205;&nbsp;</span>
+              {% for c in category %}
+                <span class="mention-mf2-value">{{ c }}</span>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if syndication %}
+            <div class="mention-mf2-field mention-mf2-syndication" title="Syndication">
+              <span class="mention-meta-label">&#128222;&nbsp;</span>
+              {% for url in syndication %}
+                {% set surl = safe_url(url) %}
+                {% if surl %}
+                  <a href="{{ surl }}" target="_blank">{{ hostname(surl) or surl }}</a>{% if not loop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if photo %}
+            <div class="mention-mf2-field mention-mf2-photo" title="Photos">
+              {% for url in photo %}
+                {% if url %}
+                  {% set purl = safe_url(url) %}
+                  {% if purl %}
+                    <a href="{{ purl }}" target="_blank">
+                      <img class="mention-mf2-photo" src="{{ purl }}" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                    </a>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if video %}
+            <div class="mention-mf2-field mention-mf2-video" title="Videos">
+              {% for url in video %}
+                {% if url %}
+                  {% set vurl = safe_url(url) %}
+                  {% if vurl %}
+                    <video class="mention-mf2-video" controls preload="none">
+                      <source src="{{ vurl }}" />
+                    </video>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if audio %}
+            <div class="mention-mf2-field mention-mf2-audio" title="Audio">
+              {% for url in audio %}
+                {% if url %}
+                  {% set aurl = safe_url(url) %}
+                  {% if aurl %}
+                    <audio class="mention-mf2-audio" controls preload="none">
+                      <source src="{{ aurl }}" />
+                    </audio>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endif %}
+</div>

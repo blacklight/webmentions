@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from markupsafe import Markup
 
 from webmentions import (
     Webmention,
@@ -142,3 +143,32 @@ def test_custom_on_mention_processed_ignores_outgoing_mentions():
     handler.outgoing._on_mention_processed(outgoing)
 
     storage.store_webmention.assert_not_called()
+
+
+def test_render_webmentions_delegates_to_renderer_and_returns_markup_list():
+    storage = Mock()
+    handler = WebmentionsHandler(storage=storage)
+
+    webmentions = [
+        Webmention(
+            source="https://example.com/source1",
+            target="https://example.com/target",
+            direction=WebmentionDirection.IN,
+        ),
+        Webmention(
+            source="https://example.com/source2",
+            target="https://example.com/target",
+            direction=WebmentionDirection.IN,
+        ),
+    ]
+
+    expected = [Markup("<div>1</div>"), Markup("<div>2</div>")]
+    handler.renderer.render_webmentions = Mock(return_value=expected)
+
+    template = "<p>{{ mention.source }}</p>"
+    result = handler.render_webmentions(webmentions, template=template)
+
+    handler.renderer.render_webmentions.assert_called_once_with(
+        webmentions, template=template
+    )
+    assert result == expected

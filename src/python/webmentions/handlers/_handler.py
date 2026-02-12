@@ -1,6 +1,11 @@
 import logging
-from typing import Any, Callable
+from pathlib import Path
+from typing import Any, Callable, Collection
 
+from jinja2 import Template
+from markupsafe import Markup
+
+from ..render import WebmentionsRenderer
 from ..storage import WebmentionsStorage
 from .._model import (
     ContentTextFormat,
@@ -66,6 +71,7 @@ class WebmentionsHandler:
             on_mention_deleted=on_mention_deleted,
             **kwargs,
         )
+        self.renderer = WebmentionsRenderer()
 
     def process_incoming_webmention(
         self, source_url: str | None, target_url: str | None
@@ -110,3 +116,20 @@ class WebmentionsHandler:
         :return: A list of Webmentions
         """
         return self.storage.retrieve_webmentions(resource, direction=direction)
+
+    def render_webmentions(
+        self,
+        webmention: Collection[Webmention],
+        template: str | Path | Template | None = None,
+    ) -> list[Markup]:
+        """
+        Render Webmentions as a list of ``Markup`` objects that can be imported
+        as safe HTML snippets in your Jinja2 templates.
+
+        :param webmention: The Webmention to render
+        :param template: The template to use. It can be a path, a Jinja2
+            Template object or a template string. If not provided, the default
+            template ``webmentions/templates/webmention.html`` will be used.
+        :return: The rendered templates
+        """
+        return self.renderer.render_webmentions(webmention, template=template)

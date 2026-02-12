@@ -4,9 +4,10 @@ version = "0.1.8"
 description = "A general-purpose library to add Webmentions support to your website"
 license = "AGPL-3.0-or-later"
 dependencies = [
+  "beautifulsoup4",
+  "jinja2",
+  "mf2py",
 	"requests",
-    "beautifulsoup4",
-    "mf2py",
 ]
 authors = [
   {name = "Fabio Manganiello", email = "fabio@manganiello.tech"},
@@ -41,6 +42,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 package-dir = {"" = "src/python"}
+
+[tool.setuptools.package-data]
+webmentions = ["templates/*.html"]
 
 [tool.setuptools.packages.find]
 where = ["src/python"]

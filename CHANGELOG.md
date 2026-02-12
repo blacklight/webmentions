@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added `WebmentionsHandler.render_webmentions` as a helper method to render
+  Webmentions into HTML.
+
+### Changed
+
+- Default `throttle_seconds` value for `FileSystemMonitor` has been increased
+  from 2 to 10 seconds (to prevent flooding of events when a file is updated
+  a few times in a short time).
+
 ## 0.1.8
 
 ### Added

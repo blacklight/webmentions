@@ -26,7 +26,7 @@ class FileSystemMonitor:
         text, HTML, and Markdown files.
     :param throttle_seconds: The minimum number of seconds between
         processing changes, to prevent too many consecutive calls when a
-        file is written multiple times. Default: 2.
+        file is written multiple times. Default: 10.
     """
 
     def __init__(
@@ -36,7 +36,7 @@ class FileSystemMonitor:
         file_to_url_mapper: Callable[[str], str],
         *,
         extensions: tuple[str, ...] = (".md", ".markdown", ".txt", ".html", ".htm"),
-        throttle_seconds: float = 2.0,
+        throttle_seconds: float = 10.0,
     ):
         self._webmentions_handler = handler
         self._source_url_from_content_path = file_to_url_mapper

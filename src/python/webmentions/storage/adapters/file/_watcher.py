@@ -26,7 +26,7 @@ class FileSystemWatcher:
         text, HTML, and Markdown files.
     :param throttle_seconds: The minimum number of seconds between
         processing changes, to prevent too many consecutive calls when a
-        file is written multiple times. Default: 2.
+        file is written multiple times. Default: 10.
     """
 
     def __init__(
@@ -35,7 +35,7 @@ class FileSystemWatcher:
         on_change: Callable[[ContentChange], None],
         *,
         extensions: tuple[str, ...] = (".md", ".markdown", ".txt", ".html", ".htm"),
-        throttle_seconds: float = 2.0,
+        throttle_seconds: float = 10.0,
     ):
         self.root_dir = root_dir
         self.on_change = on_change

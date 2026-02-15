@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `WebmentionsHandler.render_webmentions` now returns a single `Markup` object
+  rather than a list of `Markup` objects, which makes rendering simpler and more
+  consistent.
+
+- Added general `<style>` tag for `webmentions/templates/webmentions.html`,
+  customizable through CSS variables.
+
 ## 0.1.9
 
 ### Added

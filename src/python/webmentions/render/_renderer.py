@@ -98,28 +98,14 @@ class WebmentionsRenderer:
     A utility class for rendering Webmentions into HTML through Jinja2 templates.
     """
 
-    def render_webmention(
-        self, webmention: Webmention, template: TemplateLike | None = None
-    ) -> str:
-        if (
-            Environment is None
-            or PackageLoader is None
-            or Template is None
-            or select_autoescape is None
-        ):
-            raise RuntimeError(
-                "Jinja2 is required to render templates. Please install 'jinja2'."
-            )
-
-        template_obj: Template | None = None
-
+    def _get_template(self, template: TemplateLike | None, *, default: str) -> Template:
         env = Environment(
             loader=PackageLoader("webmentions", "templates"),
             autoescape=select_autoescape(enabled_extensions=("html", "xml")),
         )
 
         if template is None:
-            template_obj = env.get_template("webmention.html")
+            template_obj = env.get_template(default)
         elif isinstance(template, Path) or (
             isinstance(template, str) and os.path.isfile(template)
         ):
@@ -131,13 +117,21 @@ class WebmentionsRenderer:
             template_obj = template
 
         assert template_obj, "Template not found"
-        return template_obj.render(
-            mention=webmention.to_dict(), **TemplateUtils.to_dict()
-        )
+        return template_obj
+
+    def _get_markup(self, template: TemplateLike | None, *, default: str, **kwargs):
+        template_obj = self._get_template(template, default=default)
+        return Markup(template_obj.render(**kwargs, **TemplateUtils.to_dict()))
+
+    def render_webmention(
+        self, webmention: Webmention, template: TemplateLike | None = None
+    ) -> Markup:
+        return self._get_markup(template, default="webmention.html", mention=webmention)
 
     def render_webmentions(
         self, webmentions: Collection[Webmention], template: TemplateLike | None = None
-    ) -> list[Markup]:
-        return [
-            Markup(self.render_webmention(wm, template=template)) for wm in webmentions
-        ]
+    ) -> Markup:
+        rendered_mentions = [self.render_webmention(mention) for mention in webmentions]
+        return self._get_markup(
+            template, default="webmentions.html", mentions=rendered_mentions
+        )

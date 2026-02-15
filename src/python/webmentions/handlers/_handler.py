@@ -117,14 +117,14 @@ class WebmentionsHandler:
         """
         return self.storage.retrieve_webmentions(resource, direction=direction)
 
-    def render_webmentions(
+    def render_webmention(
         self,
-        webmention: Collection[Webmention],
+        webmention: Webmention,
         template: str | Path | Template | None = None,
-    ) -> list[Markup]:
+    ) -> Markup:
         """
-        Render Webmentions as a list of ``Markup`` objects that can be imported
-        as safe HTML snippets in your Jinja2 templates.
+        Render a Webmention as a ``Markup`` object that can be imported as safe
+        HTML snippets in your Jinja2 templates.
 
         :param webmention: The Webmention to render
         :param template: The template to use. It can be a path, a Jinja2
@@ -132,4 +132,21 @@ class WebmentionsHandler:
             template ``webmentions/templates/webmention.html`` will be used.
         :return: The rendered templates
         """
-        return self.renderer.render_webmentions(webmention, template=template)
+        return self.renderer.render_webmention(webmention, template=template)
+
+    def render_webmentions(
+        self,
+        webmentions: Collection[Webmention],
+        template: str | Path | Template | None = None,
+    ) -> Markup:
+        """
+        Render a list of Webmentions as a ``Markup`` object that can be imported
+        as safe HTML snippets in your Jinja2 templates.
+
+        :param webmentions: The Webmentions to render
+        :param template: The template to use. It can be a path, a Jinja2
+            Template object or a template string. If not provided, the default
+            template ``webmentions/templates/webmention.html`` will be used.
+        :return: The rendered templates
+        """
+        return self.renderer.render_webmentions(webmentions, template=template)

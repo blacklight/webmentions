@@ -557,9 +557,10 @@ You can retrieve Webmentions for a given URL either by:
 
 The library provides a
 [`WebmentionsHandler.render_webmentions()`](https://docs.webmentions.work/api/webmentions.handlers.html#webmentions.handlers.WebmentionsHandler.render_webmentions)
-helper that automatically converts the Webmentions into a safe collection of
-`Markup` elements that you can import and render into your page. The default
-template should probably suffice for most of the cases.
+helper that automatically converts the Webmentions into a safe `Markup` element that you can import and render into your
+page.
+
+The default template should probably suffice for most of the cases.
 
 Minimal example (using FastAPI and Jinja2):
 
@@ -615,18 +616,14 @@ Then your `article.html` template should look something like this:
         </div>
       </article>
 
-      <section id="mentions">
-        <h2>{{ mentions|length }} reactions</h2>
-        <hr>
-
-        {% for html in mentions %}
-          {{ html }}
-        {% endfor %}
-      </section>
+      {{ mentions }}
     </div>
   </body>
 </html>
 ```
+
+This will render `mentions` directly in your template, with some theme-aware
+reasonable styling.
 
 An [example and self-documented Jinja
 template](./src/python/examples/mention-render-jinja-example.html) is also

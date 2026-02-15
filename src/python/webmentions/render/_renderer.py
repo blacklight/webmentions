@@ -99,11 +99,15 @@ class WebmentionsRenderer:
     """
 
     def _get_template(self, template: TemplateLike | None, *, default: str) -> Template:
+        if Environment is None:
+            raise RuntimeError("Jinja2 is required for rendering Webmentions")
+
         env = Environment(
             loader=PackageLoader("webmentions", "templates"),
             autoescape=select_autoescape(enabled_extensions=("html", "xml")),
         )
 
+        template_obj = None
         if template is None:
             template_obj = env.get_template(default)
         elif isinstance(template, Path) or (

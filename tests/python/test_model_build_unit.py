@@ -7,6 +7,26 @@ import pytest
 from webmentions._model import Webmention, WebmentionDirection
 
 
+def test_build_with_missing_source():
+    with pytest.raises(ValueError):
+        Webmention.build(
+            {
+                "target": "https://example.com/t",
+            },
+            direction=WebmentionDirection.IN,
+        )
+
+
+def test_build_with_missing_target():
+    with pytest.raises(ValueError):
+        Webmention.build(
+            {
+                "source": "https://example.com/s",
+            },
+            direction=WebmentionDirection.IN,
+        )
+
+
 def test_build_parses_datetime_iso_with_tzinfo():
     m = Webmention.build(
         {

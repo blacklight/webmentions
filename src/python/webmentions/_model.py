@@ -144,8 +144,11 @@ class Webmention:
     def build(
         cls, data: dict, direction: WebmentionDirection = WebmentionDirection.IN
     ) -> "Webmention":
-        assert data.get("source"), "source is required"
-        assert data.get("target"), "target is required"
+        if not data.get("source"):
+            raise ValueError("source is required")
+        if not data.get("target"):
+            raise ValueError("target is required")
+
         mention_type: WebmentionType = (
             data.get("mention_type") or WebmentionType.MENTION
         )

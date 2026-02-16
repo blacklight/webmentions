@@ -49,34 +49,49 @@
 ## 0.1.5
 
 ### Changed
+
 - **Parser:** Enhanced Microformats2 support.
 
 ### Documentation / CI
+
 - **CI:** Added black and flake8 pre-commit hooks.
+
 - **README:** Added a _Microformats support_ section.
+
 - **Docs:** Added a link to the repo (and its mirror) in the docs index.
 
 ### Tests
+
 - **Parser:** Extended tests to cover all supported Microformats features.
 
 ## 0.1.4
 
 ### Added
+
 - **API:** Added `GET /webmentions` endpoint to `bind_webmentions`.
+
 - **Handler:** Ignore self-references (webmentions where `src == dest`).
+
 - **Documentation:** Added auto-generated Sphinx documentation under `docs/`.
 
 ### Changed
+
 - **API:** Changed default endpoint from `/webmention` to `/webmentions`.
+
 - **Handler:** Removed `exclude_netlocs` parameters.
 
 ### Documentation / CI
+
 - **README:** Documented the `GET /webmentions` endpoint/binding.
+
 - **Docs:** Added link to hosted docs at `docs.webmentions.work`.
+
 - **CI:** Added workflow to rebuild and publish docs on new version.
 
 ### Tests
+
 - Added tests for the default `GET` endpoint.
+
 - Added tests for `WebmentionDirection.from_raw`.
 
 ## 0.1.3

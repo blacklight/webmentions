@@ -41,7 +41,9 @@
 ## 0.1.6
 
 ### Changed
+
 - **File monitor:** A more consistent start/stop API, plus a context manager.
+
 - **Storage adapters:** Don't expose `FileSystemWatcher` in `webmentions.storage.adapters.file`.
 
 ## 0.1.5

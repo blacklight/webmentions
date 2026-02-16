@@ -120,7 +120,9 @@ class WebmentionsRenderer:
         elif isinstance(template, Template):
             template_obj = template
 
-        assert template_obj, "Template not found"
+        if not template_obj:
+            raise ValueError(f"Invalid template: {template}")
+
         return template_obj
 
     def _get_markup(self, template: TemplateLike | None, *, default: str, **kwargs):

@@ -204,9 +204,10 @@ def test_renderer_sanitizes_unsafe_urls_in_template():
 def test_renderer_raises_on_unknown_template_type():
     renderer = WebmentionsRenderer()
     wm = _build_minimal_webmention()
+    bad_template = object()
 
-    with pytest.raises(AssertionError):
-        renderer.render_webmention(wm, template=object())
+    with pytest.raises(ValueError, match="Invalid template"):
+        renderer.render_webmention(wm, template=bad_template)
 
 
 def test_renderer_raises_if_jinja2_is_missing(monkeypatch):

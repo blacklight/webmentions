@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added Tornado web framework adapter with async handlers using `run_in_executor`
+  to avoid blocking the IOLoop. Includes `bind_webmentions()` with the same API
+  as Flask/FastAPI adapters, `make_webmention_link_header_handler()` for Link
+  header injection, unit and E2E tests, API docs, example server, and `[tornado]`
+  install extra. Closes [#5](https://git.platypush.tech/blacklight/webmentions/issues/5).
+
+### Fixed
+
+- Don't display the Webmentions container `<div>` when there are no mentions to
+  render.
+
+### Changed
+
+- Replaced usage of `assert` statements with proper validation in `Webmention.build`
+  and renderer code (Codacy guidelines).
+
 ## 0.1.10
 
 ### Added

@@ -96,6 +96,7 @@ class FileSystemMonitor:
             )
 
             self._watcher.start()
+            logger.info("Started webmentions filesystem monitor")
 
     def stop(self) -> None:
         """

@@ -119,9 +119,11 @@
 }
 </style>
 
+{% if mentions is defined and mentions|length > 0 %}
 <div class="mentions">
-  <h2>💬 &nbsp; {{ mentions | length }} Mention{% if mentions | length > 1 %}s{% endif %}</h2>
+  <h2>💬 &nbsp; {{ mentions | length }} Mention{% if mentions | length != 1 %}s{% endif %}</h2>
   {% for html in mentions %}
     {{ html }}
   {% endfor %}
 </div>
+{% endif %}

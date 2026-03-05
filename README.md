@@ -52,7 +52,7 @@ directory.
 
 ### Receiving Webmentions
 
-If you use a framework with officially supported bindings (FastAPI or Flask)
+If you use a framework with officially supported bindings (FastAPI, Flask or Tornado)
 then the `bind_webmentions` API is available to easily bind the Webmentions
 handler to your app, which provides:
 
@@ -124,9 +124,45 @@ handler = WebmentionsHandler(
 bind_webmentions(app, handler)
 ```
 
+#### SQLAlchemy + Tornado
+
+```bash
+pip install "webmentions[db,tornado]"
+```
+
+```python
+from tornado.web import Application
+from tornado.ioloop import IOLoop
+from webmentions import WebmentionsHandler
+from webmentions.storage.adapters.db import init_db_storage
+from webmentions.server.adapters.tornado import bind_webmentions
+
+app = Application()
+
+# Replace this with your own database URL, or an existing engine.
+# Extra arguments passed to init_db_storage will be passed to create_engine
+storage = init_db_storage(engine="sqlite:////tmp/webmentions.db")
+
+# Your Webmentions handler
+handler = WebmentionsHandler(
+    storage=storage,
+    # This should match the public base URL of your site
+    base_url="https://example.com",
+)
+
+# ...Initialize your Web app here...
+
+# Bind Webmentions to your Tornado app
+bind_webmentions(app, handler)
+
+# Start the server
+app.listen(8000)
+IOLoop.current().start()
+```
+
 #### Generic setup
 
-If you use neither FastAPI nor Flask, you can use Webmentions by modifying your
+If you use neither FastAPI, Flask nor Tornado, you can use Webmentions by modifying your
 application as it follows:
 
 - Create a `WebmentionsHandler` with an attached `WebmentionsStorage`

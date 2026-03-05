@@ -88,6 +88,22 @@ def _run_fastapi_app(app, host: str, port: int):
         thread.join(timeout=10)
 
 
+@contextmanager
+def _run_tornado_app(app, host: str, port: int):
+    pytest.importorskip("tornado")
+    from tornado.ioloop import IOLoop
+
+    app.listen(port, address=host)
+    loop = IOLoop.current()
+    thread = threading.Thread(target=loop.start, daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        loop.add_callback(loop.stop)
+        thread.join(timeout=10)
+
+
 def _make_file_to_url_mapper(root_dir: Path, base_url: str):
     root_dir = root_dir.resolve()
 
@@ -160,7 +176,7 @@ def _wait_for_received(
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("adapter", ["flask", "fastapi"])
+@pytest.mark.parametrize("adapter", ["flask", "fastapi", "tornado"])
 def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
     host = "127.0.0.1"
     port_a = _pick_free_port()
@@ -254,7 +270,7 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
         run_ctx_a = _run_flask_app(app_a, host, port_a)
         run_ctx_b = _run_flask_app(app_b, host, port_b)
 
-    else:
+    elif adapter == "fastapi":
         pytest.importorskip("fastapi")
         from webmentions.server.adapters.fastapi import FastAPI, bind_webmentions
         from fastapi.responses import HTMLResponse
@@ -289,6 +305,64 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
 
         run_ctx_a = _run_fastapi_app(app_a, host, port_a)
         run_ctx_b = _run_fastapi_app(app_b, host, port_b)
+
+    else:  # tornado
+        pytest.importorskip("tornado")
+        from tornado.web import Application, RequestHandler
+        from webmentions.server.adapters.tornado import (
+            bind_webmentions,
+            make_webmention_link_header_handler,
+        )
+
+        app_a = Application()
+        app_b = Application()
+
+        LinkedHandler = make_webmention_link_header_handler(RequestHandler)
+
+        class HealthHandlerA(LinkedHandler):
+            def get(self):
+                self.write("ok")
+
+        class HealthHandlerB(LinkedHandler):
+            def get(self):
+                self.write("ok")
+
+        class ContentHandlerA(LinkedHandler):
+            def get(self, p: str):
+                path = (root_a / p).resolve()
+                if (
+                    not str(path).startswith(str(root_a.resolve()))
+                    or not path.is_file()
+                ):
+                    self.set_status(404)
+                    self.write("not found")
+                    return
+                self.set_header("Content-Type", "text/html")
+                self.write(path.read_text(encoding="utf-8"))
+
+        class ContentHandlerB(LinkedHandler):
+            def get(self, p: str):
+                path = (root_b / p).resolve()
+                if (
+                    not str(path).startswith(str(root_b.resolve()))
+                    or not path.is_file()
+                ):
+                    self.set_status(404)
+                    self.write("not found")
+                    return
+                self.set_header("Content-Type", "text/html")
+                self.write(path.read_text(encoding="utf-8"))
+
+        app_a.add_handlers(r".*", [("/health", HealthHandlerA)])
+        app_a.add_handlers(r".*", [("/content/(.*)", ContentHandlerA)])
+        app_b.add_handlers(r".*", [("/health", HealthHandlerB)])
+        app_b.add_handlers(r".*", [("/content/(.*)", ContentHandlerB)])
+
+        bind_webmentions(app_a, handler_a, route="/webmentions")
+        bind_webmentions(app_b, handler_b, route="/webmentions")
+
+        run_ctx_a = _run_tornado_app(app_a, host, port_a)
+        run_ctx_b = _run_tornado_app(app_b, host, port_b)
 
     with run_ctx_a, run_ctx_b:
         _wait_for(

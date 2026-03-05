@@ -9,6 +9,7 @@ Submodules
 
    webmentions.server.adapters.fastapi
    webmentions.server.adapters.flask
+   webmentions.server.adapters.tornado
 
 Module contents
 ---------------

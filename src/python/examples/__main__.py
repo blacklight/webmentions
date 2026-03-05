@@ -7,7 +7,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--backend",
-        choices=("fastapi", "flask"),
+        choices=("fastapi", "flask", "tornado"),
         default="fastapi",
         help="Web framework backend to use",
     )
@@ -41,13 +41,21 @@ def main(argv: list[str] | None = None):
                 "FastAPI example dependencies are missing. "
                 "Install them with: pip install 'webmentions[fastapi]'"
             ) from e
-    else:
+    elif args.backend == "flask":
         try:
             from .flask_server import run_server
         except ImportError as e:  # pragma: no cover
             raise RuntimeError(
                 "Flask example dependencies are missing. "
                 "Install them with: pip install 'webmentions[flask]'"
+            ) from e
+    else:
+        try:
+            from .tornado_server import run_server
+        except ImportError as e:  # pragma: no cover
+            raise RuntimeError(
+                "Tornado example dependencies are missing. "
+                "Install them with: pip install 'webmentions[tornado]'"
             ) from e
 
     run_server(engine=args.engine, address=args.address, port=args.port)

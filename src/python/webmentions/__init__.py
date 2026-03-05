@@ -9,7 +9,7 @@ from ._model import (
     WebmentionType,
 )
 
-__version__ = "0.1.10"
+__version__ = "0.1.11"
 
 __all__ = [
     "ContentTextFormat",

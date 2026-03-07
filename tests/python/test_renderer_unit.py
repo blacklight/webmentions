@@ -121,7 +121,7 @@ def test_renderer_renders_default_packaged_template():
     html = renderer.render_webmention(wm)
 
     assert isinstance(html, str)
-    assert '<div class="mention">' in html
+    assert '<div class="wm-mention">' in html
     assert "A title" in html
     assert "source.example" in html
     assert "Jan 02, 2024 at 03:04" in html

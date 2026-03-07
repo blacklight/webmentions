@@ -1,36 +1,36 @@
-<div class="mention">
+<div class="wm-mention">
   {% set safe_source = safe_url(mention.source) %}
   {% set safe_author_url = safe_url(mention.author_url) %}
   {% set safe_author_photo = safe_url(mention.author_photo) %}
   {% if mention.title and mention.source %}
-    <div class="mention-author">
+    <div class="wm-mention-author">
       {% if safe_author_photo %}
-        <img class="mention-author-photo" src="{{ safe_author_photo }}" alt="" loading="lazy" />
+        <img class="wm-mention-author-photo" src="{{ safe_author_photo }}" alt="" loading="lazy" />
       {% endif %}
 
       {% if mention.author_name or mention.author_url %}
         {% if safe_author_url %}
-          <a class="mention-author-name" href="{{ safe_author_url }}">{{ mention.author_name or hostname(safe_author_url) }}</a>
+          <a class="wm-mention-author-name" href="{{ safe_author_url }}">{{ mention.author_name or hostname(safe_author_url) }}</a>
         {% else %}
-          <span class="mention-author-name">{{ mention.author_name }}</span>
+          <span class="wm-mention-author-name">{{ mention.author_name }}</span>
         {% endif %}
         {% if safe_source %}
-          <a href="{{ safe_source }}" class="mention-domain" target="_blank">{{ hostname(safe_source) }}</a>
+          <a href="{{ safe_source }}" class="wm-mention-domain" target="_blank">{{ hostname(safe_source) }}</a>
         {% endif %}
       {% else %}
-        <span class="mention-author-name">{{ hostname(safe_source) }}</span>
+        <span class="wm-mention-author-name">{{ hostname(safe_source) }}</span>
       {% endif %}
     </div>
   {% endif %}
 
-  <div class="mention-header">
-    <h3 class="mention-title">
+  <div class="wm-mention-header">
+    <h3 class="wm-mention-title">
       {% if safe_source %}
-        <a class="mention-source" href="{{ safe_source }}">
+        <a class="wm-mention-source" href="{{ safe_source }}">
           {{ mention.title or hostname(safe_source) }}
         </a>
       {% else %}
-        <span class="mention-source">
+        <span class="wm-mention-source">
           {{ mention.title or hostname(safe_source) }}
         </span>
       {% endif %}
@@ -38,7 +38,7 @@
   </div>
 
   <div class="dates">
-    <p class="mention-date created">
+    <p class="wm-mention-date created">
       &#128338;&nbsp;
       <span class="date">{{ format_datetime(mention.published or mention.created_at) }}</span>
         {% if mention.updated_at and mention.updated_at != mention.created_at %}
@@ -50,8 +50,8 @@
   </div>
 
   {% if mention.excerpt or mention.content %}
-    <div class="mention-body">
-      <p class="mention-excerpt">{{ mention.excerpt or mention.content }}</p>
+    <div class="wm-mention-body">
+      <p class="wm-mention-excerpt">{{ mention.excerpt or mention.content }}</p>
     </div>
   {% endif %}
 
@@ -59,7 +59,7 @@
     {% set metadata = fromjson(mention.metadata) %}
     {% set mf2 = fromjson(metadata.get("mf2") if metadata is mapping else None) %}
     {% if mf2 %}
-      <div class="mention-mf2">
+      <div class="wm-mention-mf2">
         {% if mf2 is mapping %}
           {% set in_reply_to = mf2.get("in_reply_to") or [] %}
           {% set like_of = mf2.get("like_of") or [] %}
@@ -76,8 +76,8 @@
           {% set location = mf2.get("location") %}
 
           {% if in_reply_to %}
-            <div class="mention-mf2-field mention-mf2-reply" title="In reply to">
-              <span class="mention-meta-label">&#128172;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-reply" title="In reply to">
+              <span class="wm-mention-meta-label">&#128172;&nbsp;</span>
               {% for url in in_reply_to %}
                 {% set rurl = safe_url(url) %}
                 {% if rurl %}
@@ -88,8 +88,8 @@
           {% endif %}
 
           {% if like_of %}
-            <div class="mention-mf2-field mention-mf2-like" title="Likes">
-              <span class="mention-meta-label">&#128077;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-like" title="Likes">
+              <span class="wm-mention-meta-label">&#128077;&nbsp;</span>
               {% for url in like_of %}
                 {% set lurl = safe_url(url) %}
                 {% if lurl %}
@@ -100,8 +100,8 @@
           {% endif %}
 
           {% if repost_of %}
-            <div class="mention-mf2-field mention-mf2-repost" title="Reposts">
-              <span class="mention-meta-label">&#8635;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-repost" title="Reposts">
+              <span class="wm-mention-meta-label">&#8635;&nbsp;</span>
               {% for url in repost_of %}
                 {% set rpurl = safe_url(url) %}
                 {% if rpurl %}
@@ -112,8 +112,8 @@
           {% endif %}
 
           {% if bookmark_of %}
-            <div class="mention-mf2-field mention-mf2-bookmark" title="Bookmarks">
-              <span class="mention-meta-label">&#128279;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-bookmark" title="Bookmarks">
+              <span class="wm-mention-meta-label">&#128279;&nbsp;</span>
               {% for url in bookmark_of %}
                 {% set bmurl = safe_url(url) %}
                 {% if bmurl %}
@@ -124,8 +124,8 @@
           {% endif %}
 
           {% if follow_of %}
-            <div class="mention-mf2-field mention-mf2-follow" title="Follows">
-              <span class="mention-meta-label">&#128075;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-follow" title="Follows">
+              <span class="wm-mention-meta-label">&#128075;&nbsp;</span>
               {% for url in follow_of %}
                 {% set furl = safe_url(url) %}
                 {% if furl %}
@@ -136,8 +136,8 @@
           {% endif %}
 
           {% if quotation_of %}
-            <div class="mention-mf2-field mention-mf2-quote" title="Quotes">
-              <span class="mention-meta-label">&#128173;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-quote" title="Quotes">
+              <span class="wm-mention-meta-label">&#128173;&nbsp;</span>
               {% for url in quotation_of %}
                 {% set qurl = safe_url(url) %}
                 {% if qurl %}
@@ -148,31 +148,31 @@
           {% endif %}
 
           {% if rsvp %}
-            <div class="mention-mf2-field mention-mf2-rsvp" title="RSVP">
-              <span class="mention-meta-label">&#128197;&nbsp;</span>
-              <span class="mention-mf2-value">{{ rsvp }}</span>
+            <div class="wm-mention-mf2-field mention-mf2-rsvp" title="RSVP">
+              <span class="wm-mention-meta-label">&#128197;&nbsp;</span>
+              <span class="wm-mention-mf2-value">{{ rsvp }}</span>
             </div>
           {% endif %}
 
           {% if location %}
-            <div class="mention-mf2-field mention-mf2-location" title="Location">
-              <span class="mention-meta-label">&#128197;&nbsp;</span>
-              <span class="mention-mf2-value">{{ location }}</span>
+            <div class="wm-mention-mf2-field mention-mf2-location" title="Location">
+              <span class="wm-mention-meta-label">&#128197;&nbsp;</span>
+              <span class="wm-mention-mf2-value">{{ location }}</span>
             </div>
           {% endif %}
 
           {% if category %}
-            <div class="mention-mf2-field mention-mf2-category" title="Categories">
-              <span class="mention-meta-label">&#128205;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-category" title="Categories">
+              <span class="wm-mention-meta-label">&#128205;&nbsp;</span>
               {% for c in category %}
-                <span class="mention-mf2-value">{{ c }}</span>{% if not loop.last %}, {% endif %}
+                <span class="wm-mention-mf2-value">{{ c }}</span>{% if not loop.last %}, {% endif %}
               {% endfor %}
             </div>
           {% endif %}
 
           {% if syndication %}
-            <div class="mention-mf2-field mention-mf2-syndication" title="Syndication">
-              <span class="mention-meta-label">&#128222;&nbsp;</span>
+            <div class="wm-mention-mf2-field mention-mf2-syndication" title="Syndication">
+              <span class="wm-mention-meta-label">&#128222;&nbsp;</span>
               {% for url in syndication %}
                 {% set surl = safe_url(url) %}
                 {% if surl %}
@@ -183,13 +183,13 @@
           {% endif %}
 
           {% if photo %}
-            <div class="mention-mf2-field mention-mf2-photo" title="Photos">
+            <div class="wm-mention-mf2-field mention-mf2-photo" title="Photos">
               {% for url in photo %}
                 {% if url %}
                   {% set purl = safe_url(url) %}
                   {% if purl %}
                     <a href="{{ purl }}" target="_blank">
-                      <img class="mention-mf2-photo" src="{{ purl }}" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                      <img class="wm-mention-mf2-photo" src="{{ purl }}" alt="" loading="lazy" referrerpolicy="no-referrer" />
                     </a>
                   {% endif %}
                 {% endif %}
@@ -198,12 +198,12 @@
           {% endif %}
 
           {% if video %}
-            <div class="mention-mf2-field mention-mf2-video" title="Videos">
+            <div class="wm-mention-mf2-field mention-mf2-video" title="Videos">
               {% for url in video %}
                 {% if url %}
                   {% set vurl = safe_url(url) %}
                   {% if vurl %}
-                    <video class="mention-mf2-video" controls preload="none">
+                    <video class="wm-mention-mf2-video" controls preload="none">
                       <source src="{{ vurl }}" />
                     </video>
                   {% endif %}
@@ -213,12 +213,12 @@
           {% endif %}
 
           {% if audio %}
-            <div class="mention-mf2-field mention-mf2-audio" title="Audio">
+            <div class="wm-mention-mf2-field mention-mf2-audio" title="Audio">
               {% for url in audio %}
                 {% if url %}
                   {% set aurl = safe_url(url) %}
                   {% if aurl %}
-                    <audio class="mention-mf2-audio" controls preload="none">
+                    <audio class="wm-mention-mf2-audio" controls preload="none">
                       <source src="{{ aurl }}" />
                     </audio>
                   {% endif %}

@@ -1,5 +1,5 @@
 <style>
-.mentions, .mention {
+.wm-mentions, .wm-mention {
   --color-bg: var(--color-bg-mentions, #f8f8f8);
   --color-fg: var(--color-fg-mentions, #3a3a3a);
   --color-fg-secondary: var(--color-fg-mentions-secondary, #555);
@@ -8,7 +8,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .mentions, .mention {
+  .wm-mentions, .wm-mention {
     --color-bg: var(--color-bg-mentions, #202020);
     --color-fg: var(--color-fg-mentions, #ccc);
     --color-fg-secondary: var(--color-fg-mentions-secondary, #aaa);
@@ -17,12 +17,12 @@
   }
 }
 
-.mentions {
+.wm-mentions {
   margin-top: 1.5em;
   border-top: 3px solid var(--color-border);
 }
 
-.mention {
+.wm-mention {
   margin-bottom: 0.5em;
   padding: 1em;
   border: 1px solid var(--color-border);
@@ -31,30 +31,30 @@
   color: var(--color-fg);
 }
 
-.mention .mention-header {
+.wm-mention .mention-header {
   display: flex;
   align-items: center;
   gap: 0.75em;
 }
 
-.mention .mention-title {
+.wm-mention .mention-title {
   margin: 0;
   flex: 1;
   font-size: 1.05em;
 }
 
-.mention .mention-source {
+.wm-mention .mention-source {
   text-decoration: none;
 }
 
-.mention .mention-author {
+.wm-mention .mention-author {
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
   min-width: 0;
 }
 
-.mention .mention-author-photo {
+.wm-mention .mention-author-photo {
   width: 28px;
   height: 28px;
   border-radius: 999px;
@@ -62,7 +62,7 @@
   border: 1px solid var(--color-border);
 }
 
-.mention .mention-author-name {
+.wm-mention .mention-author-name {
   font-size: 0.85em;
   color: var(--color-fg-secondary);
   overflow: hidden;
@@ -70,26 +70,26 @@
   white-space: nowrap;
 }
 
-.mention .mention-published {
+.wm-mention .mention-published {
   font-size: 0.75em;
   color: var(--color-fg-tertiary);
   white-space: nowrap;
 }
 
-.mention .mention-published .label {
+.wm-mention .mention-published .label {
   margin-right: 0.35em;
 }
 
-.mention .mention-body {
+.wm-mention .mention-body {
   margin-top: 0.75em;
 }
 
-.mention .mention-excerpt {
+.wm-mention .mention-excerpt {
   margin: 0;
   line-height: 1.45em;
 }
 
-.mention h2 {
+.wm-mention h2 {
   color: var(--color-fg-secondary);
   margin-top: 0.5em;
   margin-bottom: 1em;
@@ -97,30 +97,30 @@
   font-weight: normal;
 }
 
-.mention .mention-date {
+.wm-mention .mention-date {
   font-size: 0.6em;
   color: var(--color-fg-tertiary);
 }
 
-.mention .mention-domain {
+.wm-mention .mention-domain {
   font-size: 0.75em;
   color: var(--color-fg-tertiary);
   margin-left: 0.5em;
 }
 
-.mention img,
-.mention video,
-.mention audio {
+.wm-mention img,
+.wm-mention video,
+.wm-mention audio {
   max-height: 75vh;
 }
 
-.mention .mention-mf2 {
+.wm-mention .mention-mf2 {
   padding-top: 1em;
 }
 </style>
 
 {% if mentions is defined and mentions|length > 0 %}
-<div class="mentions">
+<div class="wm-mentions">
   <h2>💬 &nbsp; {{ mentions | length }} Mention{% if mentions | length != 1 %}s{% endif %}</h2>
   {% for html in mentions %}
     {{ html }}

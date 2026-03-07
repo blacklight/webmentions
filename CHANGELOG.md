@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Namespaced all CSS classes in Webmention templates with a `wm-` prefix
+  (`.mention` → `.wm-mention`, `.mentions` → `.wm-mentions`, etc.) to avoid
+  collisions with external `.mention` classes (e.g. Mastodon's ActivityPub HTML).
+
 ## 0.1.11
 
 ### Added

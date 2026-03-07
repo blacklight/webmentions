@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Summary header in the Webmentions container template showing counters for
+  replies (💬), reposts (🔁), likes (⭐), and mentions (📣).
+  `render_webmentions()` now computes counts from `Webmention.mention_type` and
+  passes them to the template.
+
 ## 0.1.13
 
 ### Fixed

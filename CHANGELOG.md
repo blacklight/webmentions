@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fixed CSS selectors for child classes not matching after the `wm-` prefix
+  rename (e.g. `.wm-mention .mention-author-photo` → `.wm-mention .wm-mention-author-photo`).
+  This caused all Webmention styling (author photos, names, layout) to break.
+
 ## 0.1.12
 
 ### Changed

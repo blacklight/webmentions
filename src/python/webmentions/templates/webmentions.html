@@ -117,11 +117,33 @@
 .wm-mention .wm-mention-mf2 {
   padding-top: 1em;
 }
+
+.wm-mentions-summary {
+  display: flex;
+  gap: 1.25em;
+  font-size: 0.85em;
+  color: var(--color-fg-tertiary);
+  margin-bottom: 1em;
+}
+
+.wm-mentions-summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
 </style>
 
 {% if mentions is defined and mentions|length > 0 %}
 <div class="wm-mentions">
-  <h2>💬 &nbsp; {{ mentions | length }} Mention{% if mentions | length != 1 %}s{% endif %}</h2>
+  <h2>💬 &nbsp; <a href="https://indieweb.org/Webmention" target="_blank">Webmentions</a></h2>
+  {% if counts is defined %}
+  <div class="wm-mentions-summary">
+    <span>⭐ {{ counts.likes }}</span>
+    <span>🔁 {{ counts.reposts }}</span>
+    <span>💬 {{ counts.replies }}</span>
+    <span>📣 {{ counts.mentions }}</span>
+  </div>
+  {% endif %}
   {% for html in mentions %}
     {{ html }}
   {% endfor %}

@@ -138,6 +138,22 @@ class WebmentionsRenderer:
         self, webmentions: Collection[Webmention], template: TemplateLike | None = None
     ) -> Markup:
         rendered_mentions = [self.render_webmention(mention) for mention in webmentions]
+        counts = {"likes": 0, "reposts": 0, "replies": 0, "mentions": 0}
+        for wm in webmentions:
+            mt = getattr(wm, "mention_type", None)
+            if mt is not None:
+                type_val = mt.value if hasattr(mt, "value") else str(mt)
+                if type_val == "like":
+                    counts["likes"] += 1
+                elif type_val == "repost":
+                    counts["reposts"] += 1
+                elif type_val == "reply":
+                    counts["replies"] += 1
+                else:
+                    counts["mentions"] += 1
         return self._get_markup(
-            template, default="webmentions.html", mentions=rendered_mentions
+            template,
+            default="webmentions.html",
+            mentions=rendered_mentions,
+            counts=counts,
         )

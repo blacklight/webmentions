@@ -137,9 +137,23 @@ class WebmentionsRenderer:
     def render_webmentions(
         self, webmentions: Collection[Webmention], template: TemplateLike | None = None
     ) -> Markup:
-        rendered_mentions = [self.render_webmention(mention) for mention in webmentions]
+        def _sort_key(wm: Webmention):
+            return (
+                wm.created_at
+                or wm.published
+                or datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+            )
+
+        sorted_mentions = sorted(
+            webmentions,
+            key=_sort_key,
+            reverse=True,
+        )
+        rendered_mentions = [
+            self.render_webmention(mention) for mention in sorted_mentions
+        ]
         counts = {"likes": 0, "reposts": 0, "replies": 0, "mentions": 0}
-        for wm in webmentions:
+        for wm in sorted_mentions:
             mt = getattr(wm, "mention_type", None)
             if mt is not None:
                 type_val = mt.value if hasattr(mt, "value") else str(mt)

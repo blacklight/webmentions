@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Sort mentions by creation timestamp (descending) on the templates
+
 ## 0.1.14
 
 ### Added

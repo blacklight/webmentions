@@ -14,6 +14,16 @@ from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
 
 logger = logging.getLogger(__name__)
 
+# Pattern to strip URLs from titles
+_URL_PATTERN = re.compile(r"\s*https?://\S+\s*$")
+
+
+def _clean_title(title: str | None) -> str | None:
+    """Remove trailing URLs from title strings."""
+    if not title:
+        return title
+    return _URL_PATTERN.sub("", title).strip() or None
+
 
 class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
     """
@@ -259,7 +269,7 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
 
     @classmethod
     def _fill_core_fields_from_entry(cls, mention: Webmention, props: dict) -> None:
-        mention.title = mention.title or cls._first_str(props.get("name"))
+        mention.title = mention.title or _clean_title(cls._first_str(props.get("name")))
         if not mention.published:
             published = cls._first_str(props.get("published"))
             if published:
@@ -391,11 +401,11 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
             og_title: dict = soup.find("meta", attrs={"property": "og:title"})  # type: ignore
             tw_title: dict = soup.find("meta", attrs={"name": "twitter:title"})  # type: ignore
             if og_title and og_title.get("content"):
-                mention.title = og_title.get("content")
+                mention.title = _clean_title(og_title.get("content"))
             elif tw_title and tw_title.get("content"):
-                mention.title = tw_title.get("content")
+                mention.title = _clean_title(tw_title.get("content"))
             elif soup.title and soup.title.string:
-                mention.title = soup.title.string.strip()
+                mention.title = _clean_title(soup.title.string.strip())
 
         if not mention.author_name:
             meta_author: dict = soup.find("meta", attrs={"name": "author"})  # type: ignore

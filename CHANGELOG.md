@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.17
 
 ### Changed
 - Webmention renderer now collapses overly long interaction content/excerpts

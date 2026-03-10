@@ -283,7 +283,7 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
         if not mention.content and isinstance(content, list) and content:
             c0 = content[0]
             if isinstance(c0, dict):
-                mention.content = c0.get("value") or c0.get("html")
+                mention.content = c0.get("html") or c0.get("value")
             elif isinstance(c0, str):
                 mention.content = c0
 
@@ -364,7 +364,7 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
             if isinstance(c_content, list) and c_content:
                 c0 = c_content[0]
                 if isinstance(c0, dict):
-                    content = c0.get("value") or c0.get("html")
+                    content = c0.get("html") or c0.get("value")
                 elif isinstance(c0, str):
                     content = c0
             if not content:

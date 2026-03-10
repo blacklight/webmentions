@@ -49,9 +49,13 @@
     </p>
   </div>
 
-  {% if mention.excerpt or mention.content %}
+  {% if mention.content %}
     <div class="wm-mention-body">
-      <p class="wm-mention-excerpt">{{ mention.excerpt or mention.content }}</p>
+      <div class="wm-mention-content">{{ sanitize_html(mention.content) }}</div>
+    </div>
+  {% elif mention.excerpt %}
+    <div class="wm-mention-body">
+      <div class="wm-mention-excerpt">{{ sanitize_html(mention.excerpt) }}</div>
     </div>
   {% endif %}
 

@@ -218,3 +218,50 @@ def test_renderer_raises_if_jinja2_is_missing(monkeypatch):
 
     with pytest.raises(RuntimeError, match="Jinja2 is required"):
         renderer.render_webmention(wm)
+
+
+def test_long_content_has_collapsible_toggle():
+    renderer = WebmentionsRenderer()
+    long_content = "<p>" + "x" * 1100 + "</p>"
+    wm = _build_minimal_webmention(content=long_content)
+
+    html = renderer.render_webmention(wm)
+    assert "wm-mention-collapsible" in html
+    assert "wm-mention-toggle" in html
+    assert "wm-mention-expand" in html
+
+
+def test_short_content_has_no_collapsible_toggle():
+    renderer = WebmentionsRenderer()
+    wm = _build_minimal_webmention(content="<p>Short</p>")
+
+    html = renderer.render_webmention(wm)
+    assert "wm-mention-collapsible" not in html
+    assert "wm-mention-toggle" not in html
+    assert "wm-mention-expand" not in html
+
+
+def test_long_excerpt_has_collapsible_toggle():
+    renderer = WebmentionsRenderer()
+    long_excerpt = "y" * 1100
+    wm = _build_minimal_webmention(excerpt=long_excerpt)
+
+    html = renderer.render_webmention(wm)
+    assert "wm-mention-collapsible" in html
+    assert "wm-mention-toggle" in html
+
+
+def test_short_excerpt_has_no_collapsible_toggle():
+    renderer = WebmentionsRenderer()
+    wm = _build_minimal_webmention(excerpt="Short excerpt")
+
+    html = renderer.render_webmention(wm)
+    assert "wm-mention-collapsible" not in html
+    assert "wm-mention-toggle" not in html
+
+
+def test_collapsible_css_in_collection():
+    renderer = WebmentionsRenderer()
+    wm = _build_minimal_webmention()
+    html = renderer.render_webmentions([wm])
+    assert "wm-mention-collapsible" in html  # CSS class is in the <style>

@@ -51,11 +51,17 @@
 
   {% if mention.content %}
     <div class="wm-mention-body">
-      <div class="wm-mention-content">{{ sanitize_html(mention.content) }}</div>
+      <div class="wm-mention-content{{ ' wm-mention-collapsible' if mention.content|length > 1000 }}">{{ sanitize_html(mention.content) }}</div>
+      {% if mention.content|length > 1000 %}
+        <label class="wm-mention-expand"><input type="checkbox" class="wm-mention-toggle"></label>
+      {% endif %}
     </div>
   {% elif mention.excerpt %}
     <div class="wm-mention-body">
-      <div class="wm-mention-excerpt">{{ sanitize_html(mention.excerpt) }}</div>
+      <div class="wm-mention-excerpt{{ ' wm-mention-collapsible' if mention.excerpt|length > 1000 }}">{{ sanitize_html(mention.excerpt) }}</div>
+      {% if mention.excerpt|length > 1000 %}
+        <label class="wm-mention-expand"><input type="checkbox" class="wm-mention-toggle"></label>
+      {% endif %}
     </div>
   {% endif %}
 

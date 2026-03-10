@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Webmention renderer now collapses overly long interaction content/excerpts
+- (>1000 chars) with a “show more / show less” toggle, including new CSS for
+- the collapsible behavior.
+
 ## 0.1.16
 
 ### Changed

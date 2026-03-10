@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Prefer `html` over `value` when parsing mf2 `content` for webmentions.
+
+### Fixed
+- - Strip trailing URLs from mention titles derived from mf2 `name`, `og:title`, `twitter:title`, and `<title>`.
+- - Sanitize rendered mention `content`/`excerpt` via an allowlist-based HTML sanitizer (including safe `href` scheme checks) to prevent unsafe markup in templates.
+
 ## 0.1.15
 
 ### Fixed

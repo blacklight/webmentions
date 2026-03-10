@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.16
 
 ### Changed
 - Prefer `html` over `value` when parsing mf2 `content` for webmentions.

@@ -3,9 +3,38 @@
 [![build](https://github.com/blacklight/webmentions/actions/workflows/build.yml/badge.svg)](https://github.com/blacklight/webmentions/actions/workflows/build.yml)
 [![Coverage Badge](https://app.codacy.com/project/badge/Coverage/80a5b14c9beb4680a02477c7bd5a3df3)](https://app.codacy.com/gh/blacklight/webmentions/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/80a5b14c9beb4680a02477c7bd5a3df3)](https://app.codacy.com/gh/blacklight/webmentions/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Issues](https://img.shields.io/gitea/issues/open/blacklight/webmentions?gitea_url=https://git.platypush.tech)](https://git.platypush.tech/blacklight/webmentions/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/blacklight/webmentions.svg)](https://git.fabiomanganiello.com/webmentions/commits/branch/main)
 
-[📖 Full reference](https://docs.webmentions.work)
+[![License](https://img.shields.io/github/license/blacklight/webmentions.svg)](https://git.fabiomanganiello.com/webmentions/src/branch/main/LICENSE.txt)
+[![pip version](https://img.shields.io/pypi/v/webmentions.svg?style=flat)](https://pypi.python.org/pypi/webmentions/)
+[![Github stars](https://img.shields.io/github/stars/blacklight/webmentions?style=flat&logo=Github)](https://github.com/blacklight/webmentions)
+[![Github forks](https://img.shields.io/github/forks/blacklight/webmentions?style=flat&logo=Github)](https://github.com/blacklight/webmentions)
+[![Sponsor](https://img.shields.io/github/sponsors/blacklight)](https://github.com/sponsors/blacklight)
+[![Documentation](https://img.shields.io/badge/-Docs-022AC5?logo=GitBook)](https://docs.webmentions.work)
 
+<!--TOC-->
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Receiving Webmentions](#receiving-webmentions)
+    - [SQLAlchemy + FastAPI](#sqlalchemy--fastapi)
+    - [SQLAlchemy + Flask](#sqlalchemy--flask)
+    - [SQLAlchemy + Tornado](#sqlalchemy--tornado)
+    - [Generic setup](#generic-setup)
+    - [Generic storage](#generic-storage)
+  - [Sending Webmentions](#sending-webmentions)
+    - [Filesystem monitor](#filesystem-monitor)
+    - [Generic setup](#generic-setup-1)
+- [Add custom handlers to mentions](#add-custom-handlers-to-mentions)
+- [Filtering and moderation](#filtering-and-moderation)
+- [Optimize your pages for Webmentions](#optimize-your-pages-for-webmentions)
+- [Rendering Webmentions](#rendering-webmentions)
+- [Microformats support](#microformats-support)
+- [Tests](#tests)
+- [Development](#development)
+
+<!--TOC-->
 
 A general-purpose library to add Webmentions support to your website.
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Removed `max-height` from expanded interactions
+
 ## 0.1.17
 
 ### Changed

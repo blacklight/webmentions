@@ -152,6 +152,8 @@ class TemplateUtils:
         """Sanitize HTML content, returning a safe :class:`Markup` instance."""
         if not html:
             return Markup("")
+        if isinstance(html, str) and html.strip().lower() == "none":
+            return Markup("")
         return _sanitize_html(str(html))
 
     @classmethod

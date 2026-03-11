@@ -85,6 +85,11 @@ def test_template_utils_fromjson(value, expected):
     assert TemplateUtils.fromjson(value) == expected
 
 
+def test_template_utils_sanitize_html_treats_none_string_as_empty():
+    assert str(TemplateUtils.sanitize_html("None")) == ""
+    assert str(TemplateUtils.sanitize_html(" none ")) == ""
+
+
 def _build_minimal_webmention(**kwargs):
     return Webmention(
         source=kwargs.get("source", "https://source.example/post"),
@@ -239,6 +244,14 @@ def test_short_content_has_no_collapsible_toggle():
     assert "wm-mention-collapsible" not in html
     assert "wm-mention-toggle" not in html
     assert "wm-mention-expand" not in html
+
+
+def test_renderer_does_not_render_literal_none_string_in_content():
+    renderer = WebmentionsRenderer()
+    wm = _build_minimal_webmention(content="None")
+
+    html = renderer.render_webmention(wm)
+    assert ">None<" not in html
 
 
 def test_long_excerpt_has_collapsible_toggle():

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.20
 
 ### Added
 - **docs**: Added badges and TOC to the README

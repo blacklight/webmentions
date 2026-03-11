@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Minor style tweaks
+
 ## 0.1.18
 
 ### Changed

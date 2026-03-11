@@ -1,6 +1,6 @@
 [project]
 name = "webmentions"
-version = "0.1.18"
+version = "0.1.19"
 description = "A general-purpose library to add Webmentions support to your website"
 license = "AGPL-3.0-or-later"
 dependencies = [
@@ -52,7 +52,7 @@ where = ["src/python"]
 include = ["webmentions*"]
 
 [tool.bumpversion]
-current_version = "0.1.18"
+current_version = "0.1.19"
 commit = true
 tag = true
 

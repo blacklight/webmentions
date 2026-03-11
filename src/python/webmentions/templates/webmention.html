@@ -51,9 +51,11 @@
 
   {% if mention.content %}
     <div class="wm-mention-body">
+      {% if mention.content and mention.content|length > 0 %}
       <div class="wm-mention-content{{ ' wm-mention-collapsible' if mention.content|length > 1000 }}">{{ sanitize_html(mention.content) }}</div>
       {% if mention.content|length > 1000 %}
         <label class="wm-mention-expand"><input type="checkbox" class="wm-mention-toggle"></label>
+      {% endif %}
       {% endif %}
     </div>
   {% elif mention.excerpt %}

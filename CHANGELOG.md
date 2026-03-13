@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **parser:** Improved author parsing for string values: treat plain strings as
+  the author **name**, and only treat strings starting with `http://` or `ht
+
+tps://` as the author **URL**. Added tests to cover both cases.
 ## 0.1.20
 
 ### Added

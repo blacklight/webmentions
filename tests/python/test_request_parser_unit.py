@@ -439,11 +439,18 @@ def test_first_str_handles_unexpected_shapes():
 
 
 def test_extract_author_handles_string_and_unknown(monkeypatch):
+    # URL string → goes into the url slot
     assert WebmentionsRequestParser._extract_author(
         {"author": "https://example.com"}
     ) == (
         None,
         "https://example.com",
+        None,
+    )
+    # Plain name string → goes into the name slot, not url
+    assert WebmentionsRequestParser._extract_author({"author": "Alice"}) == (
+        "Alice",
+        None,
         None,
     )
     assert WebmentionsRequestParser._extract_author({"author": [123]}) == (

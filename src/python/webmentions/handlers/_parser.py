@@ -188,7 +188,9 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
             author = author[0]
 
         if isinstance(author, str):
-            return None, author, None
+            if author.startswith(("http://", "https://")):
+                return None, author, None
+            return author, None, None
 
         if isinstance(author, dict):
             props = author.get("properties") or {}

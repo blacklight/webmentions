@@ -34,11 +34,17 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
         self,
         *,
         base_url: str | None = None,
+        base_urls: list[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         user_agent: str = DEFAULT_USER_AGENT,
         **_,
     ) -> None:
-        self._base_url = base_url
+        # Support both base_url (single) and base_urls (list) for backward compat
+        self._base_urls: list[str] = []
+        if base_urls:
+            self._base_urls = list(base_urls)
+        if base_url and base_url not in self._base_urls:
+            self._base_urls.append(base_url)
         self._http_timeout = http_timeout
         self._user_agent = user_agent
 
@@ -53,11 +59,11 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
         if not (source and target):
             raise ValueError(source, target, "Missing source or target URL")
 
-        # Check that the target domain is the same as this server's domain
-        if self._base_url:
+        # Check that the target domain is one of this server's domains
+        if self._base_urls:
             target_domain = urlparse(target).netloc
-            server_domain = urlparse(self._base_url).netloc
-            if target_domain != server_domain:
+            allowed_domains = {urlparse(url).netloc for url in self._base_urls}
+            if target_domain not in allowed_domains:
                 raise ValueError("Target URL domain does not match server domain")
 
         # Check that the source URL is reachable

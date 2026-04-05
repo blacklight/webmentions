@@ -26,6 +26,9 @@ class WebmentionsHandler:
 
     :param storage: The Webmentions storage backend
     :param base_url: The base URL of the server, used to validate target URLs
+    :param base_urls: A list of base URLs, used to validate target URLs when
+        the server responds on multiple domains (e.g., split-domain setups).
+        If both ``base_url`` and ``base_urls`` are provided, they are merged.
     :param http_timeout: The HTTP timeout for fetching source URLs
     :param user_agent: The User-Agent header to use when fetching source URLs
     :param on_mention_processed: A callback to call when a Webmention is processed
@@ -45,6 +48,7 @@ class WebmentionsHandler:
         storage: WebmentionsStorage,
         *,
         base_url: str | None = None,
+        base_urls: list[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         user_agent: str = DEFAULT_USER_AGENT,
         on_mention_processed: Callable[[Webmention], None] | None = None,
@@ -56,6 +60,7 @@ class WebmentionsHandler:
         self.incoming = IncomingWebmentionsProcessor(
             storage=storage,
             base_url=base_url,
+            base_urls=base_urls,
             http_timeout=http_timeout,
             user_agent=user_agent,
             on_mention_processed=on_mention_processed,

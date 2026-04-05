@@ -23,6 +23,7 @@
     - [SQLAlchemy + Tornado](#sqlalchemy--tornado)
     - [Generic setup](#generic-setup)
     - [Generic storage](#generic-storage)
+    - [Multi-URL listener](#multi-url-listener)
   - [Sending Webmentions](#sending-webmentions)
     - [Filesystem monitor](#filesystem-monitor)
     - [Generic setup](#generic-setup-1)
@@ -309,6 +310,21 @@ storage = MyWebmentionsStorage(...)
 handler = WebmentionsHandler(
     storage=storage,
     base_url="https://example.com",
+)
+```
+
+#### Multi-URL listener
+
+There are cases where your Webmentions-enabled website is exposed through
+multiple domains or URLs, and you want to receive Webmentions for all of them.
+
+This is possible by simply passing the `base_urls` (note the plural) parameter
+to the handler:
+
+```python
+handler = WebmentionsHandler(
+    storage=storage,
+    base_urls=["https://example.com", "https://example.org"],
 )
 ```
 

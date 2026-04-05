@@ -47,6 +47,99 @@ def test_parse_validates_target_domain_against_base_url(monkeypatch):
         parser.parse("https://src.example.net/post", "https://evil.example.net/page")
 
 
+def test_parse_accepts_target_from_multiple_base_urls(monkeypatch):
+    """Test that split-domain setups work with multiple base URLs."""
+    target = "https://activitypub.example.com/article/test"
+
+    def _get(*_, **__):
+        return _FakeResponse(
+            status_code=200,
+            text=f'<html><body><a href="{target}">t</a></body></html>',
+        )
+
+    monkeypatch.setattr("webmentions.handlers._parser.requests.get", _get)
+
+    def _mf2_parse(*_, **__):
+        return {"items": []}
+
+    monkeypatch.setattr("webmentions.handlers._parser.mf2py.parse", _mf2_parse)
+
+    # Parser with multiple base URLs (split-domain setup)
+    parser = WebmentionsRequestParser(
+        base_urls=["https://blog.example.com", "https://activitypub.example.com"]
+    )
+    mention = parser.parse("https://source.example.net/post", target)
+    assert mention.target == target
+
+
+def test_parse_rejects_target_not_in_any_base_urls(monkeypatch):
+    """Test that targets not matching any base URL are rejected."""
+
+    def _get(*_, **__):
+        raise AssertionError(
+            "requests.get should not be called when domain validation fails"
+        )
+
+    monkeypatch.setattr("webmentions.handlers._parser.requests.get", _get)
+
+    parser = WebmentionsRequestParser(
+        base_urls=["https://blog.example.com", "https://activitypub.example.com"]
+    )
+    with pytest.raises(
+        ValueError, match="Target URL domain does not match server domain"
+    ):
+        parser.parse("https://src.example.net/post", "https://evil.example.net/page")
+
+
+def test_parse_base_url_and_base_urls_are_merged(monkeypatch):
+    """Test that base_url and base_urls are merged correctly."""
+    target = "https://legacy.example.com/article/test"
+
+    def _get(*_, **__):
+        return _FakeResponse(
+            status_code=200,
+            text=f'<html><body><a href="{target}">t</a></body></html>',
+        )
+
+    monkeypatch.setattr("webmentions.handlers._parser.requests.get", _get)
+
+    def _mf2_parse(*_, **__):
+        return {"items": []}
+
+    monkeypatch.setattr("webmentions.handlers._parser.mf2py.parse", _mf2_parse)
+
+    # Parser with both base_url and base_urls
+    parser = WebmentionsRequestParser(
+        base_url="https://legacy.example.com",
+        base_urls=["https://blog.example.com"],
+    )
+    mention = parser.parse("https://source.example.net/post", target)
+    assert mention.target == target
+
+
+def test_parse_base_url_only_backward_compat(monkeypatch):
+    """Test backward compatibility: base_url alone still works."""
+    target = "https://example.com/article/test"
+
+    def _get(*_, **__):
+        return _FakeResponse(
+            status_code=200,
+            text=f'<html><body><a href="{target}">t</a></body></html>',
+        )
+
+    monkeypatch.setattr("webmentions.handlers._parser.requests.get", _get)
+
+    def _mf2_parse(*_, **__):
+        return {"items": []}
+
+    monkeypatch.setattr("webmentions.handlers._parser.mf2py.parse", _mf2_parse)
+
+    # Parser with only base_url (old API)
+    parser = WebmentionsRequestParser(base_url="https://example.com")
+    mention = parser.parse("https://source.example.net/post", target)
+    assert mention.target == target
+
+
 @pytest.mark.parametrize("status_code", [404, 410])
 def test_parse_404_410_raises_webmention_gone(monkeypatch, status_code):
     def _get(*_, **__):

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Support for multi-URL handler configuration through the `base_urls` parameter.
+
 ## 0.1.21
 
 ### Fixed

@@ -10,7 +10,11 @@ import requests
 from ..storage import WebmentionsStorage
 from .._model import ContentTextFormat, Webmention, WebmentionDirection
 from ._common import on_mention_callback_wrapper
-from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
+from ._constants import (
+    DEFAULT_HTTP_TIMEOUT,
+    DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
+    DEFAULT_USER_AGENT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +26,10 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
     :param storage: Webmentions storage
     :param user_agent: User agent to use
     :param http_timeout: HTTP timeout
+    :param max_discovery_response_bytes: Maximum response body size to read when
+        discovering Webmention endpoints from HTML. Responses with a larger
+        ``Content-Length`` are skipped, and streaming responses are read only up
+        to this limit.
     :param on_mention_processed: Callback to call when a Webmention is processed.
         It should accept a :class:`webmentions.Webmention` object.
     :param on_mention_deleted: Callback to call when a Webmention is deleted.
@@ -34,12 +42,14 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         *,
         user_agent: str = DEFAULT_USER_AGENT,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
+        max_discovery_response_bytes: int = DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
         on_mention_processed=None,
         on_mention_deleted=None,
         **_,
     ):
         self._storage = storage
         self._http_timeout = http_timeout
+        self._max_discovery_response_bytes = max_discovery_response_bytes
         self._user_agent = user_agent
         self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)
         self._on_mention_deleted = on_mention_callback_wrapper(on_mention_deleted)
@@ -226,6 +236,71 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         if resp.status_code >= 400:
             resp.raise_for_status()
 
+    @staticmethod
+    def _is_html_response(resp) -> bool:
+        content_type = (resp.headers.get("Content-Type") or "").split(";", 1)[0]
+        content_type = content_type.strip().lower()
+        return content_type in ("", "text/html", "application/xhtml+xml")
+
+    def _read_discovery_html(self, resp, target_url: str) -> str | None:
+        if not self._is_html_response(resp):
+            logger.info(
+                "Skipping Webmention endpoint discovery for non-HTML target %s "
+                "(Content-Type: %s)",
+                target_url,
+                resp.headers.get("Content-Type", ""),
+            )
+            return None
+
+        max_bytes = self._max_discovery_response_bytes
+        content_length = resp.headers.get("Content-Length")
+        if content_length:
+            try:
+                if int(content_length) > max_bytes:
+                    logger.info(
+                        "Skipping Webmention endpoint discovery for oversized target "
+                        "%s (Content-Length: %s)",
+                        target_url,
+                        content_length,
+                    )
+                    return None
+            except ValueError:
+                logger.debug("Ignoring invalid Content-Length for %s", target_url)
+
+        if hasattr(resp, "iter_content"):
+            chunks: list[bytes] = []
+            total = 0
+            for chunk in resp.iter_content(chunk_size=65536, decode_unicode=False):
+                if not chunk:
+                    continue
+                if isinstance(chunk, str):
+                    chunk = chunk.encode(resp.encoding or "utf-8", errors="replace")
+                chunks.append(chunk)
+                total += len(chunk)
+                if total > max_bytes:
+                    logger.info(
+                        "Skipping Webmention endpoint discovery for oversized target "
+                        "%s (read more than %d bytes)",
+                        target_url,
+                        max_bytes,
+                    )
+                    return None
+
+            body = b"".join(chunks)
+            encoding = getattr(resp, "encoding", None) or "utf-8"
+            return body.decode(encoding, errors="replace")
+
+        text = resp.text or ""
+        if len(text.encode(getattr(resp, "encoding", None) or "utf-8")) > max_bytes:
+            logger.info(
+                "Skipping Webmention endpoint discovery for oversized target "
+                "%s (response text exceeds %d bytes)",
+                target_url,
+                max_bytes,
+            )
+            return None
+        return text
+
     def _discover_webmention_endpoint(self, target_url: str) -> str | None:
         """
         Discover a Webmention endpoint for a target URL.
@@ -235,31 +310,41 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             timeout=self._http_timeout,
             headers={"User-Agent": self._user_agent},
             allow_redirects=True,
+            stream=True,
         )
-        resp.raise_for_status()
+        try:
+            resp.raise_for_status()
 
-        # Check if there is a Link header
-        link_header = resp.headers.get("Link")
-        if link_header:
-            for part in link_header.split(","):
-                if "rel=" not in part.lower():
+            html = self._read_discovery_html(resp, target_url)
+            if html is None:
+                return None
+
+            # Check if there is a Link header
+            link_header = resp.headers.get("Link")
+            if link_header:
+                for part in link_header.split(","):
+                    if "rel=" not in part.lower():
+                        continue
+                    if "webmention" not in part.lower():
+                        continue
+                    m = re.search(r"<([^>]+)>", part)
+                    if m:
+                        return urljoin(resp.url, m.group(1))
+
+            # Check if there is a <link> or <a> tag
+            soup = BeautifulSoup(html, "html.parser")
+            for tag in soup.find_all(["link", "a"]):
+                rel = tag.get("rel")
+                href: str = tag.get("href")  # type: ignore
+                if not href:
                     continue
-                if "webmention" not in part.lower():
-                    continue
-                m = re.search(r"<([^>]+)>", part)
-                if m:
-                    return urljoin(resp.url, m.group(1))
 
-        # Check if there is a <link> or <a> tag
-        soup = BeautifulSoup(resp.text or "", "html.parser")
-        for tag in soup.find_all(["link", "a"]):
-            rel = tag.get("rel")
-            href: str = tag.get("href")  # type: ignore
-            if not href:
-                continue
+                rel_str = " ".join(rel) if isinstance(rel, list) else (rel or "")
+                if "webmention" in rel_str.lower():
+                    return urljoin(resp.url, href)
 
-            rel_str = " ".join(rel) if isinstance(rel, list) else (rel or "")
-            if "webmention" in rel_str.lower():
-                return urljoin(resp.url, href)
-
-        return None
+            return None
+        finally:
+            close = getattr(resp, "close", None)
+            if close:
+                close()

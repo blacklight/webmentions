@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Skip processing of Webmention for large or non-HTML URLs.
+
 ## 0.1.22
 
 ### Added

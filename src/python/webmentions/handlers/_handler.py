@@ -13,7 +13,11 @@ from .._model import (
     WebmentionDirection,
     WebmentionStatus,
 )
-from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
+from ._constants import (
+    DEFAULT_HTTP_TIMEOUT,
+    DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
+    DEFAULT_USER_AGENT,
+)
 from ._incoming import IncomingWebmentionsProcessor
 from ._outgoing import OutgoingWebmentionsProcessor
 
@@ -30,6 +34,8 @@ class WebmentionsHandler:
         the server responds on multiple domains (e.g., split-domain setups).
         If both ``base_url`` and ``base_urls`` are provided, they are merged.
     :param http_timeout: The HTTP timeout for fetching source URLs
+    :param max_discovery_response_bytes: Maximum response body size to read when
+        discovering outgoing Webmention endpoints from target HTML.
     :param user_agent: The User-Agent header to use when fetching source URLs
     :param on_mention_processed: A callback to call when a Webmention is processed
     :param on_mention_deleted: A callback to call when a Webmention is deleted
@@ -50,6 +56,7 @@ class WebmentionsHandler:
         base_url: str | None = None,
         base_urls: list[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
+        max_discovery_response_bytes: int = DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
         user_agent: str = DEFAULT_USER_AGENT,
         on_mention_processed: Callable[[Webmention], None] | None = None,
         on_mention_deleted: Callable[[Webmention], None] | None = None,
@@ -72,6 +79,7 @@ class WebmentionsHandler:
             storage=storage,
             user_agent=user_agent,
             http_timeout=http_timeout,
+            max_discovery_response_bytes=max_discovery_response_bytes,
             on_mention_processed=on_mention_processed,
             on_mention_deleted=on_mention_deleted,
             **kwargs,

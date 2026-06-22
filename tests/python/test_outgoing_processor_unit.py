@@ -48,18 +48,30 @@ class _FakeResponse:
         url: str,
         status_code: int = 200,
         text: str = "",
+        body: bytes | None = None,
         headers: dict[str, str] | None = None,
         exc: Exception | None = None,
     ):
         self.url = url
         self.status_code = status_code
         self.text = text
+        self.body = body
         self.headers = headers or {}
+        self.encoding = "utf-8"
         self._exc = exc
+        self.closed = False
 
     def raise_for_status(self):
         if self._exc is not None:
             raise self._exc
+
+    def iter_content(self, chunk_size=1, decode_unicode=False):
+        body = self.body if self.body is not None else self.text.encode(self.encoding)
+        for i in range(0, len(body), chunk_size):
+            yield body[i : i + chunk_size]
+
+    def close(self):
+        self.closed = True
 
 
 class _SyncExecutor:
@@ -109,6 +121,102 @@ def test_discover_endpoint_from_html_tag(monkeypatch):
     assert (
         processor._discover_webmention_endpoint("https://target.example/post")
         == "https://target.example/wm"
+    )
+
+
+def test_discover_endpoint_fetches_target_as_stream(monkeypatch):
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(storage)
+
+    fetched = {}
+
+    def _get(url, **kwargs):
+        fetched["url"] = url
+        fetched["stream"] = kwargs.get("stream")
+        return _FakeResponse(
+            url="https://target.example/post",
+            headers={"Content-Type": "text/html"},
+            text="<html></html>",
+        )
+
+    monkeypatch.setattr("webmentions.handlers._outgoing.requests.get", _get)
+
+    assert (
+        processor._discover_webmention_endpoint("https://target.example/post") is None
+    )
+    assert fetched == {"url": "https://target.example/post", "stream": True}
+
+
+def test_discover_endpoint_skips_non_html_response(monkeypatch):
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(storage)
+    response = _FakeResponse(
+        url="https://target.example/model.zip",
+        headers={"Content-Type": "application/zip", "Content-Length": "123"},
+        body=b"PK\x03\x04binary zip payload",
+    )
+
+    def _get(url, **_):
+        assert url == "https://target.example/model.zip"
+        return response
+
+    def _raise_bs4(*_, **__):
+        raise AssertionError("BeautifulSoup should not parse non-HTML responses")
+
+    monkeypatch.setattr("webmentions.handlers._outgoing.requests.get", _get)
+    monkeypatch.setattr("webmentions.handlers._outgoing.BeautifulSoup", _raise_bs4)
+
+    assert (
+        processor._discover_webmention_endpoint("https://target.example/model.zip")
+        is None
+    )
+    assert response.closed
+
+
+def test_discover_endpoint_skips_oversized_content_length(monkeypatch):
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(storage, max_discovery_response_bytes=16)
+
+    def _get(url, **_):
+        assert url == "https://target.example/huge"
+        return _FakeResponse(
+            url="https://target.example/huge",
+            headers={"Content-Type": "text/html", "Content-Length": "17"},
+            body=b"<link rel='webmention' href='/wm'>",
+        )
+
+    def _raise_bs4(*_, **__):
+        raise AssertionError("BeautifulSoup should not parse oversized responses")
+
+    monkeypatch.setattr("webmentions.handlers._outgoing.requests.get", _get)
+    monkeypatch.setattr("webmentions.handlers._outgoing.BeautifulSoup", _raise_bs4)
+
+    assert (
+        processor._discover_webmention_endpoint("https://target.example/huge") is None
+    )
+
+
+def test_discover_endpoint_skips_streaming_response_over_limit(monkeypatch):
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(storage, max_discovery_response_bytes=16)
+
+    def _get(url, **_):
+        assert url == "https://target.example/chunked"
+        return _FakeResponse(
+            url="https://target.example/chunked",
+            headers={"Content-Type": "text/html"},
+            body=b"x" * 17,
+        )
+
+    def _raise_bs4(*_, **__):
+        raise AssertionError("BeautifulSoup should not parse oversized responses")
+
+    monkeypatch.setattr("webmentions.handlers._outgoing.requests.get", _get)
+    monkeypatch.setattr("webmentions.handlers._outgoing.BeautifulSoup", _raise_bs4)
+
+    assert (
+        processor._discover_webmention_endpoint("https://target.example/chunked")
+        is None
     )
 
 

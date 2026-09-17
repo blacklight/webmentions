@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- New ``exclude_local_targets`` flag on ``WebmentionsHandler`` and
+  ``OutgoingWebmentionsProcessor``. When enabled, extracted outgoing
+  targets whose ``netloc`` matches a configured ``base_url``/``base_urls``
+  are skipped instead of being notified — for applications that already
+  handle same-site mentions through their own pipeline. Off by default:
+  cross-post mentions on the same domain remain regular Webmentions.
+
 ## 0.1.26
 
 ### Security

@@ -11,6 +11,7 @@ from ..storage import WebmentionsStorage
 from .._model import ContentTextFormat, Webmention, WebmentionDirection
 from ._common import on_mention_callback_wrapper
 from ._constants import (
+    DEFAULT_EXCLUDE_LOCAL_TARGETS,
     DEFAULT_HTTP_TIMEOUT,
     DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
     DEFAULT_SSRF_PROTECTION,
@@ -26,6 +27,17 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
     Process outgoing Webmentions.
 
     :param storage: Webmentions storage
+    :param base_url: The base URL of the server, used to identify local
+        targets when ``exclude_local_targets`` is enabled.
+    :param base_urls: A list of base URLs, merged with ``base_url``.
+    :param exclude_local_targets: If ``True``, extracted targets whose
+        ``netloc`` matches one of the configured ``base_url``/``base_urls``
+        are skipped — the same notion of "local" the incoming processor
+        uses to validate targets. Enable it when the application already
+        handles same-site mentions through its own pipeline; leave it off
+        when cross-post mentions on the same domain should be delivered
+        as regular Webmentions. It has no effect without a configured
+        ``base_url``/``base_urls``.
     :param user_agent: User agent to use
     :param http_timeout: HTTP timeout
     :param max_discovery_response_bytes: Maximum response body size to read when
@@ -42,6 +54,9 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         self,
         storage: WebmentionsStorage,
         *,
+        base_url: str | None = None,
+        base_urls: list[str] | None = None,
+        exclude_local_targets: bool = DEFAULT_EXCLUDE_LOCAL_TARGETS,
         user_agent: str = DEFAULT_USER_AGENT,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         max_discovery_response_bytes: int = DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
@@ -57,6 +72,24 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         self._ssrf_protection = ssrf_protection
         self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)
         self._on_mention_deleted = on_mention_callback_wrapper(on_mention_deleted)
+
+        self._local_netlocs: set[str] = set()
+        if exclude_local_targets:
+            local_urls = list(base_urls or [])
+            if base_url:
+                local_urls.append(base_url)
+
+            self._local_netlocs = {
+                netloc
+                for netloc in (urlparse(u).netloc.lower() for u in local_urls)
+                if netloc
+            }
+
+            if not self._local_netlocs:
+                logger.warning(
+                    "exclude_local_targets is enabled but no base_url/base_urls "
+                    "are configured - no targets will be treated as local"
+                )
 
     def process_outgoing_webmentions(
         self,
@@ -235,7 +268,9 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         return {
             u
             for u in cleaned
-            if urlparse(u).scheme in ("http", "https") and urlparse(u).netloc
+            if urlparse(u).scheme in ("http", "https")
+            and urlparse(u).netloc
+            and urlparse(u).netloc.lower() not in self._local_netlocs
         }
 
     def _notify_target(self, source_url: str, target_url: str) -> None:

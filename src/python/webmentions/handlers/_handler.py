@@ -14,6 +14,7 @@ from .._model import (
     WebmentionStatus,
 )
 from ._constants import (
+    DEFAULT_EXCLUDE_LOCAL_TARGETS,
     DEFAULT_HTTP_TIMEOUT,
     DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
     DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
@@ -45,6 +46,12 @@ class WebmentionsHandler:
         response bodies. Keep enabled on public-facing deployments; disable
         only for private-network setups that legitimately mention internal
         hosts.
+    :param exclude_local_targets: If ``True``, outgoing targets whose ``netloc``
+        matches one of the configured ``base_url``/``base_urls`` are skipped
+        instead of being notified. Enable it when the application already
+        handles same-site mentions through its own pipeline; leave it off
+        (the default) when cross-post mentions on the same domain should be
+        delivered as regular Webmentions.
     :param user_agent: The User-Agent header to use when fetching source URLs
     :param on_mention_processed: A callback to call when a Webmention is processed
     :param on_mention_deleted: A callback to call when a Webmention is deleted
@@ -68,6 +75,7 @@ class WebmentionsHandler:
         max_discovery_response_bytes: int = DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
         max_source_response_bytes: int = DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
         ssrf_protection: bool = DEFAULT_SSRF_PROTECTION,
+        exclude_local_targets: bool = DEFAULT_EXCLUDE_LOCAL_TARGETS,
         user_agent: str = DEFAULT_USER_AGENT,
         on_mention_processed: Callable[[Webmention], None] | None = None,
         on_mention_deleted: Callable[[Webmention], None] | None = None,
@@ -90,6 +98,9 @@ class WebmentionsHandler:
         )
         self.outgoing = OutgoingWebmentionsProcessor(
             storage=storage,
+            base_url=base_url,
+            base_urls=base_urls,
+            exclude_local_targets=exclude_local_targets,
             user_agent=user_agent,
             http_timeout=http_timeout,
             max_discovery_response_bytes=max_discovery_response_bytes,

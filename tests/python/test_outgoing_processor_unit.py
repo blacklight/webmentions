@@ -427,3 +427,87 @@ def test_process_outgoing_webmentions_fetches_source_when_text_is_none(monkeypat
         "stream": True,
     }
     assert calls == [("https://source.example/post", "https://target.example/t")]
+
+
+def test_extract_targets_excludes_local_targets_when_enabled():
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(
+        storage,
+        base_urls=["https://me.example", "http://me.example"],
+        exclude_local_targets=True,
+    )
+
+    text = (
+        "See https://me.example/self and https://other.example/post "
+        "and http://me.example/another"
+    )
+    targets = processor._extract_targets(text, ContentTextFormat.TEXT)
+
+    assert targets == {"https://other.example/post"}
+
+
+def test_extract_targets_keeps_local_targets_by_default():
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(
+        storage,
+        base_urls=["https://me.example"],
+    )
+
+    text = "See https://me.example/self and https://other.example/post"
+    targets = processor._extract_targets(text, ContentTextFormat.TEXT)
+
+    assert targets == {
+        "https://me.example/self",
+        "https://other.example/post",
+    }
+
+
+def test_extract_targets_exclude_local_without_base_urls_is_noop():
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(storage, exclude_local_targets=True)
+
+    text = "See https://me.example/self and https://other.example/post"
+    targets = processor._extract_targets(text, ContentTextFormat.TEXT)
+
+    assert targets == {
+        "https://me.example/self",
+        "https://other.example/post",
+    }
+
+
+def test_extract_targets_exclude_local_matches_netloc_including_port():
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(
+        storage,
+        base_url="http://localhost:8080",
+        exclude_local_targets=True,
+    )
+
+    text = "See http://localhost:8080/local and http://localhost:9000/other"
+    targets = processor._extract_targets(text, ContentTextFormat.TEXT)
+
+    assert targets == {"http://localhost:9000/other"}
+
+
+def test_process_outgoing_webmentions_skips_local_targets(monkeypatch):
+    source = "https://me.example/post"
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(
+        storage,
+        base_urls=["https://me.example"],
+        exclude_local_targets=True,
+    )
+
+    monkeypatch.setattr(
+        "webmentions.handlers._outgoing.ThreadPoolExecutor", _SyncExecutor
+    )
+
+    added: list[tuple[str, str]] = []
+    monkeypatch.setattr(processor, "_notify_added", lambda s, t: added.append((s, t)))
+
+    text = "See https://me.example/self and https://other.example/post"
+    processor.process_outgoing_webmentions(
+        source, text=text, text_format=ContentTextFormat.TEXT
+    )
+
+    assert added == [(source, "https://other.example/post")]

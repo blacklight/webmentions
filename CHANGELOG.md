@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Derive plain-text excerpts from HTML content: incoming `mention.excerpt` is
+  now stripped of HTML tags and truncated at a word boundary, instead of
+  cutting raw markup mid-tag. The entry's explicit `p-summary` is also exposed
+  under `metadata["mf2"]["summary"]`.
+  ([`6b03a40`](https://git.platypush.tech/blacklight/webmentions/commit/6b03a40366b70b52da41e7b7fd852c29ba2c183c))
+
 ## 0.1.23
 
 ### Fixed

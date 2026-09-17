@@ -582,6 +582,39 @@ def test_parse_generates_excerpt_from_content_when_missing(monkeypatch):
     assert mention.excerpt == "a b c"
 
 
+def test_parse_generates_plain_text_excerpt_from_html_content(monkeypatch):
+    source = "https://example.com/source"
+    target = "https://example.com/target"
+    html = f'<html><body><a href="{target}">t</a></body></html>'
+
+    def _get(*_, **__):
+        return _FakeResponse(status_code=200, text=html)
+
+    monkeypatch.setattr("webmentions.handlers._parser.requests.get", _get)
+
+    long_text = "lorem ipsum dolor sit amet " * 20
+    h_entry = {
+        "type": ["h-entry"],
+        "properties": {
+            "content": [{"html": f"<p>{long_text}<a href='https://x.y'>link</a></p>"}],
+        },
+    }
+
+    def _mf2_parse(*_, **__):
+        return {"items": [h_entry]}
+
+    monkeypatch.setattr("webmentions.handlers._parser.mf2py.parse", _mf2_parse)
+
+    parser = WebmentionsRequestParser()
+    mention = parser.parse(source, target)
+
+    assert mention.excerpt is not None
+    assert "<" not in mention.excerpt
+    assert ">" not in mention.excerpt
+    assert mention.excerpt.endswith("…")
+    assert len(mention.excerpt) <= 241
+
+
 def test_parse_excerpt_generation_can_result_in_none(monkeypatch):
     source = "https://example.com/source"
     target = "https://example.com/target"

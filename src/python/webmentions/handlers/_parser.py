@@ -17,6 +17,46 @@ logger = logging.getLogger(__name__)
 # Pattern to strip URLs from titles
 _URL_PATTERN = re.compile(r"\s*https?://\S+\s*$")
 
+# Maximum length of a derived excerpt, in characters
+_EXCERPT_MAX_LENGTH = 240
+
+
+def _html_to_text(html: str) -> str:
+    """
+    Reduce an HTML fragment to whitespace-collapsed plain text.
+    """
+    try:
+        text = BeautifulSoup(html, "html.parser").get_text(" ")
+    except Exception:
+        text = re.sub(r"<[^>]+>", " ", html)
+
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _truncate_text(text: str, limit: int = _EXCERPT_MAX_LENGTH) -> str:
+    """
+    Truncate ``text`` at a word boundary within ``limit`` characters.
+    """
+    if len(text) <= limit:
+        return text
+
+    cut = text[:limit].rsplit(" ", 1)[0].rstrip()
+    return f"{cut}…" if cut else f"{text[:limit]}…"
+
+
+def _make_excerpt(content: str | None) -> str | None:
+    """
+    Derive a plain-text excerpt from (possibly HTML) content.
+
+    Tags are stripped before truncation so the excerpt never cuts markup
+    in half.
+    """
+    if not content:
+        return None
+
+    excerpt = _html_to_text(content)
+    return _truncate_text(excerpt) if excerpt else None
+
 
 def _clean_title(title: str | None) -> str | None:
     """Remove trailing URLs from title strings."""
@@ -123,9 +163,8 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
 
         cls._fill_from_html_fallbacks(mention, html)
 
-        if not mention.excerpt and mention.content:
-            excerpt = re.sub(r"\s+", " ", mention.content).strip()
-            mention.excerpt = excerpt[:240] if excerpt else None
+        if not mention.excerpt:
+            mention.excerpt = _make_excerpt(mention.content)
 
     @staticmethod
     def _extract_h_entry(html: str, source_url: str) -> dict | None:
@@ -255,6 +294,7 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
         mention.metadata["mf2"]["type"] = entry.get("type")
         mention.metadata["mf2"]["url"] = cls._first_str(props.get("url"))
         mention.metadata["mf2"]["uid"] = cls._first_str(props.get("uid"))
+        mention.metadata["mf2"]["summary"] = cls._first_str(props.get("summary"))
         mention.metadata["mf2"]["category"] = props.get("category") or []
         mention.metadata["mf2"]["syndication"] = props.get("syndication") or []
         mention.metadata["mf2"]["rsvp"] = cls._first_str(props.get("rsvp"))
@@ -430,6 +470,5 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
             if desc and desc.get("content"):
                 mention.content = desc.get("content")
 
-        if mention.content and not mention.excerpt:
-            excerpt = re.sub(r"\s+", " ", mention.content).strip()
-            mention.excerpt = excerpt[:250] if excerpt else None
+        if not mention.excerpt:
+            mention.excerpt = _make_excerpt(mention.content)

@@ -195,12 +195,15 @@ def test_e2e_filesystem_webmentions_two_servers_db_storage(adapter, tmp_path):
 
     received_b: "queue.Queue[Webmention]" = queue.Queue()
 
-    handler_a = WebmentionsHandler(storage=db_a, base_url=base_a)
+    # SSRF protection is disabled: the test servers legitimately mention
+    # loopback addresses, which the guard would otherwise reject.
+    handler_a = WebmentionsHandler(storage=db_a, base_url=base_a, ssrf_protection=False)
     handler_b = WebmentionsHandler(
         storage=db_b,
         base_url=base_b,
         on_mention_processed=lambda m: received_b.put(m),
         on_mention_deleted=lambda m: received_b.put(m),
+        ssrf_protection=False,
     )
 
     fs_a = FileSystemMonitor(

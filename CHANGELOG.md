@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- SSRF protection for every remote fetch on the Webmention path (incoming
+  source parsing, outgoing endpoint discovery, outgoing delivery, and
+  outgoing source-page reads). Fetches now resolve each URL's hostname —
+  including every redirect hop — and reject private, loopback, link-local,
+  CGNAT, reserved, and multicast addresses; non-http(s) redirect schemes
+  are refused; response bodies are streamed under a hard byte cap.
+  Enabled by default via the new ``ssrf_protection`` flag on
+  ``WebmentionsHandler`` and the processors — private-network deployments
+  that legitimately mention internal hosts should set
+  ``ssrf_protection=False``.
+- New ``max_source_response_bytes`` handler/processor parameter caps the
+  incoming source page body (default 1 MiB), matching the existing
+  ``max_discovery_response_bytes`` cap on the outgoing side.
+
 ## 0.1.25
 
 ### Fixed

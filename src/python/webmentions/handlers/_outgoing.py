@@ -13,8 +13,10 @@ from ._common import on_mention_callback_wrapper
 from ._constants import (
     DEFAULT_HTTP_TIMEOUT,
     DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
+    DEFAULT_SSRF_PROTECTION,
     DEFAULT_USER_AGENT,
 )
+from ._fetch import fetch_guarded
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,7 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         user_agent: str = DEFAULT_USER_AGENT,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         max_discovery_response_bytes: int = DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
+        ssrf_protection: bool = DEFAULT_SSRF_PROTECTION,
         on_mention_processed=None,
         on_mention_deleted=None,
         **_,
@@ -51,6 +54,7 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         self._http_timeout = http_timeout
         self._max_discovery_response_bytes = max_discovery_response_bytes
         self._user_agent = user_agent
+        self._ssrf_protection = ssrf_protection
         self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)
         self._on_mention_deleted = on_mention_callback_wrapper(on_mention_deleted)
 
@@ -72,12 +76,20 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             it will be inferred from the source URL or text.
         """
         if text is None:
-            resp = requests.get(
-                source_url,
-                timeout=self._http_timeout,
-                headers={"User-Agent": self._user_agent},
-                allow_redirects=True,
-            )
+            if self._ssrf_protection:
+                resp = fetch_guarded(
+                    source_url,
+                    timeout=self._http_timeout,
+                    user_agent=self._user_agent,
+                    max_bytes=self._max_discovery_response_bytes,
+                )
+            else:
+                resp = requests.get(
+                    source_url,
+                    timeout=self._http_timeout,
+                    headers={"User-Agent": self._user_agent},
+                    allow_redirects=True,
+                )
             resp.raise_for_status()
             text = resp.text or ""
             text_format = ContentTextFormat.HTML
@@ -234,13 +246,22 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         if not endpoint:
             return
 
-        resp = requests.post(
-            endpoint,
-            data={"source": source_url, "target": target_url},
-            timeout=self._http_timeout,
-            headers={"User-Agent": self._user_agent},
-            allow_redirects=True,
-        )
+        if self._ssrf_protection:
+            resp = fetch_guarded(
+                endpoint,
+                data={"source": source_url, "target": target_url},
+                timeout=self._http_timeout,
+                user_agent=self._user_agent,
+                max_bytes=self._max_discovery_response_bytes,
+            )
+        else:
+            resp = requests.post(
+                endpoint,
+                data={"source": source_url, "target": target_url},
+                timeout=self._http_timeout,
+                headers={"User-Agent": self._user_agent},
+                allow_redirects=True,
+            )
 
         if resp.status_code >= 400:
             resp.raise_for_status()
@@ -314,13 +335,29 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         """
         Discover a Webmention endpoint for a target URL.
         """
-        resp = requests.get(
-            target_url,
-            timeout=self._http_timeout,
-            headers={"User-Agent": self._user_agent},
-            allow_redirects=True,
-            stream=True,
-        )
+        if self._ssrf_protection:
+            try:
+                resp = fetch_guarded(
+                    target_url,
+                    timeout=self._http_timeout,
+                    user_agent=self._user_agent,
+                    max_bytes=self._max_discovery_response_bytes,
+                )
+            except ValueError as exc:
+                logger.info(
+                    "Skipping Webmention endpoint discovery for %s: %s",
+                    target_url,
+                    exc,
+                )
+                return None
+        else:
+            resp = requests.get(
+                target_url,
+                timeout=self._http_timeout,
+                headers={"User-Agent": self._user_agent},
+                allow_redirects=True,
+                stream=True,
+            )
         try:
             resp.raise_for_status()
 

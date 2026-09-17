@@ -11,15 +11,32 @@ from webmentions.handlers._parser import WebmentionsRequestParser
 
 class _FakeResponse:
     def __init__(
-        self, *, status_code: int = 200, text: str = "", exc: Exception | None = None
+        self,
+        *,
+        status_code: int = 200,
+        text: str = "",
+        exc: Exception | None = None,
+        headers: dict | None = None,
     ):
         self.status_code = status_code
         self.text = text
         self._exc = exc
+        self.headers = headers or {}
+        self.url = "https://example.com/source"
+        self.encoding = "utf-8"
+        has_location = any(k.lower() == "location" for k in self.headers)
+        self.is_redirect = has_location and status_code in (301, 302, 303, 307, 308)
+        self.is_permanent_redirect = has_location and status_code in (301, 308)
 
     def raise_for_status(self):
         if self._exc:
             raise self._exc
+
+    def iter_content(self, chunk_size=65536, decode_unicode=False):
+        yield self.text.encode(self.encoding)
+
+    def close(self):
+        pass
 
 
 def test_parse_requires_source_and_target():

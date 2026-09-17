@@ -6,7 +6,12 @@ from ..storage import WebmentionsStorage
 from .._exceptions import WebmentionException, WebmentionGone
 from .._model import Webmention, WebmentionDirection, WebmentionStatus
 from ._common import on_mention_callback_wrapper
-from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
+from ._constants import (
+    DEFAULT_HTTP_TIMEOUT,
+    DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
+    DEFAULT_SSRF_PROTECTION,
+    DEFAULT_USER_AGENT,
+)
 from ._parser import WebmentionsRequestParser
 
 logger = logging.getLogger(__name__)
@@ -25,6 +30,8 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         base_urls: list[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         user_agent: str = DEFAULT_USER_AGENT,
+        max_source_response_bytes: int = DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
+        ssrf_protection: bool = DEFAULT_SSRF_PROTECTION,
         on_mention_processed=None,
         on_mention_deleted=None,
         init_mention_status: WebmentionStatus = WebmentionStatus.CONFIRMED,
@@ -35,6 +42,8 @@ class IncomingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
             base_urls=base_urls,
             http_timeout=http_timeout,
             user_agent=user_agent,
+            max_source_response_bytes=max_source_response_bytes,
+            ssrf_protection=ssrf_protection,
         )
         self._storage = storage
         self._on_mention_processed = on_mention_callback_wrapper(on_mention_processed)

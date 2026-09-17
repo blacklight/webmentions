@@ -60,6 +60,9 @@ class _FakeResponse:
         self.encoding = "utf-8"
         self._exc = exc
         self.closed = False
+        has_location = any(k.lower() == "location" for k in self.headers)
+        self.is_redirect = has_location and status_code in (301, 302, 303, 307, 308)
+        self.is_permanent_redirect = has_location and status_code in (301, 308)
 
     def raise_for_status(self):
         if self._exc is not None:
@@ -398,11 +401,12 @@ def test_process_outgoing_webmentions_fetches_source_when_text_is_none(monkeypat
 
     fetched = {}
 
-    def _get(url, *, timeout, headers, allow_redirects):
+    def _get(url, *, timeout, headers, allow_redirects, stream=False):
         fetched["url"] = url
         fetched["timeout"] = timeout
         fetched["headers"] = headers
         fetched["allow_redirects"] = allow_redirects
+        fetched["stream"] = stream
         return _FakeResponse(
             url=url,
             text="<html><body><a href='https://target.example/t'>t</a></body></html>",
@@ -419,6 +423,7 @@ def test_process_outgoing_webmentions_fetches_source_when_text_is_none(monkeypat
         "url": "https://source.example/post",
         "timeout": 3.0,
         "headers": {"User-Agent": "UA"},
-        "allow_redirects": True,
+        "allow_redirects": False,
+        "stream": True,
     }
     assert calls == [("https://source.example/post", "https://target.example/t")]

@@ -16,6 +16,8 @@ from .._model import (
 from ._constants import (
     DEFAULT_HTTP_TIMEOUT,
     DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
+    DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
+    DEFAULT_SSRF_PROTECTION,
     DEFAULT_USER_AGENT,
 )
 from ._incoming import IncomingWebmentionsProcessor
@@ -36,6 +38,13 @@ class WebmentionsHandler:
     :param http_timeout: The HTTP timeout for fetching source URLs
     :param max_discovery_response_bytes: Maximum response body size to read when
         discovering outgoing Webmention endpoints from target HTML.
+    :param max_source_response_bytes: Maximum response body size to read when
+        parsing incoming Webmention source pages.
+    :param ssrf_protection: Validate every fetched URL (including each redirect
+        hop) against private/loopback/link-local/reserved addresses and cap
+        response bodies. Keep enabled on public-facing deployments; disable
+        only for private-network setups that legitimately mention internal
+        hosts.
     :param user_agent: The User-Agent header to use when fetching source URLs
     :param on_mention_processed: A callback to call when a Webmention is processed
     :param on_mention_deleted: A callback to call when a Webmention is deleted
@@ -57,6 +66,8 @@ class WebmentionsHandler:
         base_urls: list[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         max_discovery_response_bytes: int = DEFAULT_MAX_DISCOVERY_RESPONSE_BYTES,
+        max_source_response_bytes: int = DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
+        ssrf_protection: bool = DEFAULT_SSRF_PROTECTION,
         user_agent: str = DEFAULT_USER_AGENT,
         on_mention_processed: Callable[[Webmention], None] | None = None,
         on_mention_deleted: Callable[[Webmention], None] | None = None,
@@ -70,6 +81,8 @@ class WebmentionsHandler:
             base_urls=base_urls,
             http_timeout=http_timeout,
             user_agent=user_agent,
+            max_source_response_bytes=max_source_response_bytes,
+            ssrf_protection=ssrf_protection,
             on_mention_processed=on_mention_processed,
             on_mention_deleted=on_mention_deleted,
             init_mention_status=initial_mention_status,
@@ -80,6 +93,7 @@ class WebmentionsHandler:
             user_agent=user_agent,
             http_timeout=http_timeout,
             max_discovery_response_bytes=max_discovery_response_bytes,
+            ssrf_protection=ssrf_protection,
             on_mention_processed=on_mention_processed,
             on_mention_deleted=on_mention_deleted,
             **kwargs,

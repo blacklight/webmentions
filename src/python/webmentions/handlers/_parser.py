@@ -10,7 +10,13 @@ import requests
 
 from .._exceptions import WebmentionGone
 from .._model import Webmention, WebmentionDirection, WebmentionType
-from ._constants import DEFAULT_HTTP_TIMEOUT, DEFAULT_USER_AGENT
+from ._constants import (
+    DEFAULT_HTTP_TIMEOUT,
+    DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
+    DEFAULT_SSRF_PROTECTION,
+    DEFAULT_USER_AGENT,
+)
+from ._fetch import fetch_guarded
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +83,8 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
         base_urls: list[str] | None = None,
         http_timeout: float = DEFAULT_HTTP_TIMEOUT,
         user_agent: str = DEFAULT_USER_AGENT,
+        max_source_response_bytes: int = DEFAULT_MAX_SOURCE_RESPONSE_BYTES,
+        ssrf_protection: bool = DEFAULT_SSRF_PROTECTION,
         **_,
     ) -> None:
         # Support both base_url (single) and base_urls (list) for backward compat
@@ -87,6 +95,8 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
             self._base_urls.append(base_url)
         self._http_timeout = http_timeout
         self._user_agent = user_agent
+        self._max_source_response_bytes = max_source_response_bytes
+        self._ssrf_protection = ssrf_protection
 
     def parse(self, source: str | None, target: str | None) -> Webmention:
         """
@@ -107,11 +117,19 @@ class WebmentionsRequestParser:  # pylint: disable=too-few-public-methods
                 raise ValueError("Target URL domain does not match server domain")
 
         # Check that the source URL is reachable
-        resp = requests.get(
-            source,
-            timeout=self._http_timeout,
-            headers={"User-Agent": self._user_agent},
-        )
+        if self._ssrf_protection:
+            resp = fetch_guarded(
+                source,
+                timeout=self._http_timeout,
+                user_agent=self._user_agent,
+                max_bytes=self._max_source_response_bytes,
+            )
+        else:
+            resp = requests.get(
+                source,
+                timeout=self._http_timeout,
+                headers={"User-Agent": self._user_agent},
+            )
 
         if resp.status_code in (404, 410):
             raise WebmentionGone(source, target, "Source URL not found")

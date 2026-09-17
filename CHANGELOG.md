@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Discover Webmention endpoints for non-HTML media targets via the `Link`
+  response header, and extract absolute `src` URLs from HTML embeds as
+  outgoing targets.
+  ([`234fba1`](https://git.platypush.tech/blacklight/webmentions/commit/234fba1a32d50169f79c8e57f17a3f63c024e47d))
+
 ## 0.1.24
 
 ### Fixed

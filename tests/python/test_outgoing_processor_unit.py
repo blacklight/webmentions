@@ -147,6 +147,29 @@ def test_discover_endpoint_fetches_target_as_stream(monkeypatch):
     assert fetched == {"url": "https://target.example/post", "stream": True}
 
 
+def test_discover_endpoint_from_link_header_on_non_html(monkeypatch):
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(storage)
+
+    def _get(url, **_):
+        assert url == "https://target.example/audio.mp3"
+        return _FakeResponse(
+            url="https://target.example/audio.mp3",
+            headers={
+                "Content-Type": "audio/mpeg",
+                "Link": '</webmentions>; rel="webmention"',
+            },
+            body=b"ID3binary",
+        )
+
+    monkeypatch.setattr("webmentions.handlers._outgoing.requests.get", _get)
+
+    assert (
+        processor._discover_webmention_endpoint("https://target.example/audio.mp3")
+        == "https://target.example/webmentions"
+    )
+
+
 def test_discover_endpoint_skips_non_html_response(monkeypatch):
     storage = _FakeStorage()
     processor = OutgoingWebmentionsProcessor(storage)
@@ -275,6 +298,29 @@ def test_notify_added_marks_sent_on_success_and_swallows_failures(monkeypatch):
     processor2._notify_added("https://source.example/s", "https://target.example/t")
 
     assert storage2.sent == []
+
+
+def test_extract_targets_from_html_includes_media_src():
+    storage = _FakeStorage()
+    processor = OutgoingWebmentionsProcessor(storage)
+
+    html = """
+    <html><body>
+      <a href="https://target.example/linked">link</a>
+      <audio controls src="https://target.example/song.mp3"></audio>
+      <video src="https://target.example/clip.mp4"></video>
+      <img src="/relative/image.png" />
+      <source src="https://target.example/inner.ogg" />
+    </body></html>
+    """
+
+    targets = processor._extract_targets(html, ContentTextFormat.HTML)
+
+    assert "https://target.example/linked" in targets
+    assert "https://target.example/song.mp3" in targets
+    assert "https://target.example/clip.mp4" in targets
+    assert "https://target.example/inner.ogg" in targets
+    assert "/relative/image.png" not in targets
 
 
 def test_process_outgoing_webmentions_computes_added_and_removed(monkeypatch):

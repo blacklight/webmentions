@@ -181,6 +181,15 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
                 "https://"
             ):
                 urls.add(href)
+
+        # Media embeds (<audio>, <video>, <img>, <source>, ...) also
+        # reference targets - the receiver-side verification accepts any
+        # ``src`` match, so outgoing extraction should too.
+        for tag in soup.find_all(src=True):  # type: ignore[arg-type]
+            src = str(tag.get("src") or "").strip()
+            if src.lower().startswith(("http://", "https://")):
+                urls.add(src)
+
         return self._clean_and_filter_targets(urls)
 
     def _extract_urls_from_markdown_or_text(self, md: str) -> set[str]:
@@ -315,11 +324,9 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
         try:
             resp.raise_for_status()
 
-            html = self._read_discovery_html(resp, target_url)
-            if html is None:
-                return None
-
-            # Check if there is a Link header
+            # Check if there is a Link header. This applies to any content
+            # type: for non-HTML resources (audio, images, PDFs) the Link
+            # header is the only way to advertise a Webmention endpoint.
             link_header = resp.headers.get("Link")
             if link_header:
                 for part in link_header.split(","):
@@ -330,6 +337,10 @@ class OutgoingWebmentionsProcessor:  # pylint: disable=too-few-public-methods
                     m = re.search(r"<([^>]+)>", part)
                     if m:
                         return urljoin(resp.url, m.group(1))
+
+            html = self._read_discovery_html(resp, target_url)
+            if html is None:
+                return None
 
             # Check if there is a <link> or <a> tag
             soup = BeautifulSoup(html, "html.parser")

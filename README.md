@@ -35,6 +35,7 @@
 - [Microformats support](#microformats-support)
 - [Tests](#tests)
 - [Development](#development)
+- [Releases](#releases)
 
 <!--TOC-->
 
@@ -79,7 +80,7 @@ A feature-parity Rust implementation of the library lives under
 
 ```toml
 [dependencies]
-webmentions-sdk = "0.1"
+webmentions-sdk = "0.2"
 ```
 
 It mirrors the Python API with idiomatic Rust types — the same
@@ -843,3 +844,17 @@ Run all hooks manually:
 ```bash
 pre-commit run --all-files
 ```
+
+## Releases
+
+Release versions are managed by `bump-my-version` (included in
+`.[dev]`). Run `bump-my-version bump patch` (or `minor` / `major`) from
+the repository root with an `Unreleased` changelog section. This updates
+the Python metadata and `__version__`, the Rust crate manifest, and only
+`webmentions-sdk` in `Cargo.lock`, then commits and tags the release.
+The unpublished Rust test crate stays at `0.0.0`.
+
+Pushing the resulting `v*` tag publishes the Python package to PyPI and
+the Rust crate to crates.io as `webmentions-sdk` (via the
+`publish-crates` workflow, which requires the `CRATES_TOKEN` repository
+secret).

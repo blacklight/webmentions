@@ -13,6 +13,10 @@
   framework-agnostic server `dispatch` and an `axum` adapter
   (feature `axum`). Rust tests live under `tests/rust`
   (`make test-rust`).
+- crates.io release automation: pushing a `v*` tag runs the
+  `publish-crates` GitHub workflow, which lints and tests the Rust
+  workspace and publishes `webmentions-sdk` to crates.io (requires the
+  `CRATES_TOKEN` repository secret).
 
 ## 0.1.27
 

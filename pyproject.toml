@@ -60,6 +60,11 @@ tag = true
 filename = "src/python/webmentions/__init__.py"
 
 [[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = "[project]\nname = \"webmentions\"\nversion = \"{current_version}\""
+replace = "[project]\nname = \"webmentions\"\nversion = \"{new_version}\""
+
+[[tool.bumpversion.files]]
 filename = "src/rust/Cargo.toml"
 search = "[package]\nname = \"webmentions-sdk\"\nversion = \"{current_version}\""
 replace = "[package]\nname = \"webmentions-sdk\"\nversion = \"{new_version}\""

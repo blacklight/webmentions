@@ -8,7 +8,7 @@ Feature-parity with the Python API, with idiomatic Rust types
 
 ```toml
 [dependencies]
-webmentions-sdk = "0.1"
+webmentions-sdk = "0.2"
 ```
 
 ## Features

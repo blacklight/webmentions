@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Rust SDK (`webmentions-sdk` crate) under `src/rust` — a feature-parity
+  port of the library: `Webmention` model, `WebmentionsHandler` façade,
+  incoming/outgoing processors, SSRF-guarded fetch, mf2 source parsing,
+  the Jinja-compatible renderer with the same bundled templates, the
+  `WebmentionsStorage` trait, a `notify`-based filesystem watcher/monitor
+  (feature `file`), a `rusqlite`-backed SQLite storage (feature `db`), a
+  framework-agnostic server `dispatch` and an `axum` adapter
+  (feature `axum`). Rust tests live under `tests/rust`
+  (`make test-rust`).
+
 ## 0.1.27
 
 ### Added

@@ -16,6 +16,7 @@
 <!--TOC-->
 
 - [Installation](#installation)
+- [Rust SDK](#rust-sdk)
 - [Usage](#usage)
   - [Receiving Webmentions](#receiving-webmentions)
     - [SQLAlchemy + FastAPI](#sqlalchemy--fastapi)
@@ -69,6 +70,39 @@ For the base installation:
 ```bash
 pip install webmentions
 ```
+
+## Rust SDK
+
+A feature-parity Rust implementation of the library lives under
+`src/rust` and is published to crates.io as
+[`webmentions-sdk`](https://crates.io/crates/webmentions-sdk).
+
+```toml
+[dependencies]
+webmentions-sdk = "0.1"
+```
+
+It mirrors the Python API with idiomatic Rust types — the same
+`Webmention` model, `WebmentionsHandler` façade, incoming/outgoing
+processors, SSRF-guarded fetch, Microformats2 source parsing, the
+Jinja-compatible renderer with the same bundled templates, pluggable
+storage and the server endpoint logic.
+
+Optional Cargo features:
+
+| Feature | Enables |
+|---------|---------|
+| `db` | `SqliteWebmentionsStorage` (SQLite backend) |
+| `file` | `FileSystemWatcher`/`FileSystemMonitor` (outgoing mentions on content changes) |
+| `axum` | `server::axum::{bind_webmentions, webmentions_router}` |
+
+Framework-agnostic endpoint handling is also exposed through
+`webmentions_sdk::server::dispatch`, which maps
+`(method, path, query, headers, body)` to a plain response so any Rust
+framework can mount the endpoint with a thin shim.
+
+See [`src/rust/README.md`](src/rust/README.md) for usage examples and
+feature flags.
 
 ## Usage
 

@@ -1,0 +1,204 @@
+<style>
+.wm-mentions, .wm-mention {
+  --color-bg: var(--color-bg-mentions, #f8f8f8);
+  --color-fg: var(--color-fg-mentions, #3a3a3a);
+  --color-fg-secondary: var(--color-fg-mentions-secondary, #555);
+  --color-fg-tertiary: var(--color-fg-mentions-tertiary, #999);
+  --color-border: var(--color-mentions-border, #ccc);
+}
+
+@media (prefers-color-scheme: dark) {
+  .wm-mentions, .wm-mention {
+    --color-bg: var(--color-bg-mentions, #202020);
+    --color-fg: var(--color-fg-mentions, #ccc);
+    --color-fg-secondary: var(--color-fg-mentions-secondary, #aaa);
+    --color-fg-tertiary: var(--color-fg-mentions-tertiary, #666);
+    --color-border: var(--color-mentions-border, #666);
+  }
+}
+
+.wm-mentions {
+  margin-top: 1.5em;
+  border-top: 3px solid var(--color-border);
+}
+
+.wm-mention {
+  margin-bottom: 0.5em;
+  padding: 1em;
+  border: 1px solid var(--color-border);
+  border-radius: 0.6em;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+.wm-mention .wm-mention-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+
+.wm-mention .wm-mention-title {
+  margin: 0;
+  flex: 1;
+  font-size: 1.05em;
+}
+
+.wm-mention .wm-mention-source {
+  text-decoration: none;
+}
+
+.wm-mention .wm-mention-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 0;
+}
+
+.wm-mention .wm-mention-author-photo {
+  width: 35px;
+  height: 35px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
+.wm-mention .wm-mention-author-name {
+  color: var(--color-fg-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wm-mention .wm-mention-published {
+  font-size: 0.75em;
+  color: var(--color-fg-tertiary);
+  white-space: nowrap;
+}
+
+.wm-mention .wm-mention-published .label {
+  margin-right: 0.35em;
+}
+
+.wm-mention .wm-mention-body {
+  margin-top: 0.75em;
+}
+
+.wm-mention .wm-mention-content {
+  line-height: 1.45em;
+}
+
+.wm-mention .wm-mention-excerpt {
+  margin: 0;
+  line-height: 1.45em;
+}
+
+.wm-mention .wm-mention-collapsible {
+  max-height: 8em;
+  overflow: hidden;
+  position: relative;
+  transition: max-height 0.35s cubic-bezier(0, 1, 0, 1);
+}
+
+.wm-mention .wm-mention-collapsible::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2em;
+  background: linear-gradient(to bottom, transparent, var(--color-bg));
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.wm-mention:has(.wm-mention-toggle:checked) .wm-mention-collapsible {
+  max-height: 1000em;
+  transition: max-height 0.35s ease-in;
+}
+
+.wm-mention:has(.wm-mention-toggle:checked) .wm-mention-collapsible::after {
+  opacity: 0;
+}
+
+.wm-mention .wm-mention-toggle {
+  display: none;
+}
+
+.wm-mention .wm-mention-expand {
+  display: block;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.75em;
+  color: var(--color-fg-tertiary);
+  padding: 0.25em 0;
+  user-select: none;
+}
+
+.wm-mention .wm-mention-expand::after {
+  content: 'show more \25BE';
+}
+
+.wm-mention:has(.wm-mention-toggle:checked) .wm-mention-expand::after {
+  content: 'show less \25B4';
+}
+
+.wm-mentions h2 {
+  color: var(--color-fg-secondary);
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+  padding-top: 0.5em;
+  font-weight: normal;
+}
+
+.wm-mention .wm-mention-date {
+  font-size: 0.6em;
+  color: var(--color-fg-tertiary);
+}
+
+.wm-mention .wm-mention-domain {
+  font-size: 0.75em;
+  color: var(--color-fg-tertiary);
+  margin-left: 0.5em;
+}
+
+.wm-mention img,
+.wm-mention video,
+.wm-mention audio {
+  max-height: 75vh;
+}
+
+.wm-mention .wm-mention-mf2 {
+  padding-top: 1em;
+}
+
+.wm-mentions-summary {
+  display: flex;
+  gap: 1.25em;
+  font-size: 0.85em;
+  color: var(--color-fg-tertiary);
+  margin-bottom: 1em;
+}
+
+.wm-mentions-summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+</style>
+
+{% if mentions is defined and mentions|length > 0 %}
+<div class="wm-mentions">
+  <h2>💬 &nbsp; <a href="https://indieweb.org/Webmention" target="_blank">Webmentions</a></h2>
+  {% if counts is defined %}
+  <div class="wm-mentions-summary">
+    <span>⭐ {{ counts.likes }}</span>
+    <span>🔁 {{ counts.reposts }}</span>
+    <span>💬 {{ counts.replies }}</span>
+    <span>📣 {{ counts.mentions }}</span>
+  </div>
+  {% endif %}
+  {% for html in mentions %}
+    {{ html }}
+  {% endfor %}
+</div>
+{% endif %}
